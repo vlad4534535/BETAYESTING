@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: SKILLS & ARTIFACTS</title>
+    <title>Tactical Shooter: ARTIFACTS FIX</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body {
@@ -134,7 +134,9 @@
         .wpn-btn { width: 35px; height: 35px; background: #333; border: 1px solid #666; color: white; font-size: 9px; font-weight: bold; display: flex; justify-content: center; align-items: center; border-radius: 5px; font-family: inherit; cursor: pointer; }
         .wpn-btn.active { border-color: #0077FF; background: #004488; }
         .wpn-btn.locked { opacity: 0.3; border-color: #333; cursor: not-allowed; }
-        #levelup-notify { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px orange; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 100; text-align: center; }
+        
+        #levelup-notify, #artifact-notify { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px orange; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 100; text-align: center; width: 100%; }
+        #artifact-notify { color: #00FFFF; text-shadow: 0 0 10px blue; font-size: 30px; }
 
         /* MOBILE OVERRIDES */
         body.mobile-mode .bar-container { width: 100px; height: 8px; border-width: 1px; }
@@ -155,11 +157,14 @@
         body.mobile-mode .promo-container { margin-top: 15px; padding: 10px; }
         body.mobile-mode #promo-input { width: 60%; font-size: 16px; padding: 10px; }
         body.mobile-mode #promo-btn { padding: 10px 20px; font-size: 16px; }
-        body.mobile-mode #levelup-notify { font-size: 24px; }
+        body.mobile-mode #levelup-notify, body.mobile-mode #artifact-notify { font-size: 24px; }
         body.mobile-mode #exit-mission-btn { padding: 10px 30px; font-size: 16px; border-width: 2px; top: 5px; }
     </style>
 </head>
 <body>
+
+    <div id="levelup-notify">НОВИЙ РІВЕНЬ!<br><span style="font-size:20px; color:white;">HP Full!</span></div>
+    <div id="artifact-notify">ЗНАХІДКА!</div>
 
     <div id="cheat-toggle-btn" onclick="document.getElementById('cheat-menu').style.display='block'">🎅</div>
     <div id="cheat-menu">
@@ -341,8 +346,6 @@
         <label style="display:block; color:#AAA;"><input type="checkbox" id="tr-moving"> Moving</label>
         <button class="btn" style="width:100px; font-size:10px; padding:5px;" onclick="clearEnemies()">CLEAR</button>
     </div>
-    
-    <div id="levelup-notify">НОВИЙ РІВЕНЬ!<br><span style="font-size:20px; color:white;">HP Full!</span></div>
 
     <div id="mobile-controls">
         <div id="stick-left" class="joystick-zone hud-draggable"><div class="joystick-knob" id="knob-left"></div></div>
@@ -477,8 +480,10 @@
         function addPlayerXp(amount) { playerStats.xp += amount; if (playerStats.xp >= playerStats.nextLevelXp) levelUp(); updateUI(); }
         function levelUp() { playerStats.xp -= playerStats.nextLevelXp; playerStats.level++; playerStats.nextLevelXp = getNextLevelXp(playerStats.level); playerStats.coins += 50 * playerStats.level; if (player) player.hp = player.maxHp; showLevelUpEffect(); saveGame(); if (playerStats.xp >= playerStats.nextLevelXp) levelUp(); }
         function showLevelUpEffect() { const el = document.getElementById('levelup-notify'); el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
+        function showArtifactEffect(name) { const el = document.getElementById('artifact-notify'); el.innerHTML = "ЗНАХІДКА!<br><span style='font-size:20px; color:white'>"+name+"</span>"; el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
+        
         function loadGame() {
-            let saved = localStorage.getItem('tacticalShooterData_v10_skills');
+            let saved = localStorage.getItem('tacticalShooterData_v11_artfix');
             if (saved) { 
                 let parsed = JSON.parse(saved); 
                 playerStats = { ...playerStats, ...parsed.stats }; 
@@ -494,7 +499,7 @@
         }
         function saveGame() { 
             playerStats.cheatUnlocked = cheatUnlocked;
-            localStorage.setItem('tacticalShooterData_v10_skills', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
+            localStorage.setItem('tacticalShooterData_v11_artfix', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
             updateMenuStats(); 
         }
         function updateMenuStats() { document.getElementById('menu-coins').innerText = playerStats.coins; document.getElementById('menu-level').innerText = playerStats.level; document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`; }
@@ -674,7 +679,15 @@
         function sendNetworkData(data) { connections.forEach(c => c.send(data)); }
         function handleNetworkData(data) { if(data.type === 'move') { remotePlayers[data.id] = data; remotePlayers[data.id].lastUpdate = Date.now(); } else if(data.type === 'shoot') { bullets.push(new Bullet(data.x, data.y, data.vel, false, data.dmg, 4, data.wType)); } else if(data.type === 'spawnEnemy' && !isHost) { enemies.push(new Enemy(data.x, data.y, data.kind)); } }
 
-        class DropItem { constructor(x, y, type) { this.x = x; this.y = y; this.type = type; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; if(this.type==='artifact') { ctx.fillStyle='cyan'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='white'; ctx.fillText('?', this.x-4, Y+5); } else if (this.type === 'medkit') { ctx.fillStyle = '#00CC00'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle = '#FFF'; ctx.fillRect(this.x-3, Y-8, 6, 16); ctx.fillRect(this.x-8, Y-3, 16, 6); } else if (this.type === 'grenade') { ctx.fillStyle = '#FFA500'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#000'; ctx.font="16px Arial"; ctx.fillText("💣", this.x-9, Y+6); } else if (this.type === 'coin') { ctx.fillStyle='#FFFF00'; ctx.beginPath(); ctx.arc(this.x, Y, 10, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#000'; ctx.font="bold 14px Arial"; ctx.fillText("$", this.x-4, Y+5); } } }
+        class DropItem { constructor(x, y, type, aType) { this.x = x; this.y = y; this.type = type; this.artifactType=aType; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; 
+            if(this.type==='artifact') { 
+                // VISUALS FOR ARTIFACTS
+                if(this.artifactType === 'rusty_gear') { ctx.fillStyle='#8B4513'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#DAA520'; ctx.fillRect(this.x-5, Y-5, 10, 10); }
+                else if(this.artifactType === 'ancient_coin') { ctx.fillStyle='#DAA520'; ctx.beginPath(); ctx.arc(this.x, Y, 12, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#8B4513'; ctx.stroke(); }
+                else if(this.artifactType === 'blue_crystal') { ctx.fillStyle='#00FFFF'; ctx.shadowBlur=10; ctx.shadowColor='cyan'; ctx.beginPath(); ctx.moveTo(this.x, Y-15); ctx.lineTo(this.x+10, Y); ctx.lineTo(this.x, Y+15); ctx.lineTo(this.x-10, Y); ctx.fill(); ctx.shadowBlur=0; }
+                else if(this.artifactType === 'gold_idol') { ctx.fillStyle='#FFD700'; ctx.fillRect(this.x-8, Y-15, 16, 30); ctx.fillStyle='#000'; ctx.fillRect(this.x-3, Y-10, 2, 2); ctx.fillRect(this.x+1, Y-10, 2, 2); }
+                else { ctx.fillStyle='cyan'; ctx.fillRect(this.x-10, Y-10, 20, 20); } // Fallback
+            } else if (this.type === 'medkit') { ctx.fillStyle = '#00CC00'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle = '#FFF'; ctx.fillRect(this.x-3, Y-8, 6, 16); ctx.fillRect(this.x-8, Y-3, 16, 6); } else if (this.type === 'grenade') { ctx.fillStyle = '#FFA500'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#000'; ctx.font="16px Arial"; ctx.fillText("💣", this.x-9, Y+6); } else if (this.type === 'coin') { ctx.fillStyle='#FFFF00'; ctx.beginPath(); ctx.arc(this.x, Y, 10, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#000'; ctx.font="bold 14px Arial"; ctx.fillText("$", this.x-4, Y+5); } } }
         class GrenadeObj { constructor(x, y, tx, ty) { this.x = x; this.y = y; this.timer = 60; this.dead = false; const angle = Math.atan2(ty - y, tx - x); const dist = Math.hypot(tx - x, ty - y); const speed = Math.min(dist / 20, 10); this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed; this.flyTime = Math.floor(dist / speed); } update() { if (this.flyTime > 0) { this.x += this.vx; this.y += this.vy; this.flyTime--; } this.timer--; if (this.timer <= 0) { this.explode(); this.dead = true; } } explode() { createExplosion(this.x, this.y); screenShake = 15; enemies.forEach(en => { if (Math.hypot(en.x - this.x, en.y - this.y) < 120) { en.takeDamage(150); if (en.hp <= 0) grenadesKilled++; } }); } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI*2); ctx.fillStyle = Math.floor(this.timer/5)%2===0 ? 'red' : 'yellow'; ctx.fill(); ctx.strokeStyle='#000'; ctx.stroke(); } }
         class Rect { constructor(x, y, size) { this.x = x; this.y = y; this.size = size; } draw() { ctx.fillStyle = '#556'; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.fillStyle = '#EEF'; ctx.beginPath(); ctx.moveTo(this.x-2, this.y); ctx.lineTo(this.x+this.size+2, this.y); ctx.lineTo(this.x+this.size+2, this.y+15); for(let i=0; i<this.size; i+=10) ctx.arc(this.x+this.size-i, this.y+15, 5, 0, Math.PI); ctx.lineTo(this.x-2, this.y+15); ctx.fill(); ctx.strokeStyle='#223'; ctx.lineWidth=2; ctx.strokeRect(this.x, this.y, this.size, this.size); } }
         class Entity { constructor(x, y, radius, color, hp) { this.x=x; this.y=y; this.radius=radius; this.color=color; this.hp=hp; this.maxHp=hp; this.dead=false; this.cooldown=0; } drawBase() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); } drawHealthBar() { if (this.hp < this.maxHp || this instanceof Player) { ctx.save(); ctx.fillStyle = '#FFFFFF'; ctx.font = "bold 12px Courier New"; ctx.textAlign = "center"; ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(Math.ceil(this.hp), this.x, this.y - this.radius - 15); ctx.restore(); } if (this.hp < this.maxHp) { let w = this.radius * 2; ctx.fillStyle='red'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w, 4); ctx.fillStyle='#00FF00'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w*(this.hp/this.maxHp), 4); } } move(dx, dy) { if (!this.checkWallCollision(this.x+dx, this.y)) this.x+=dx; if (!this.checkWallCollision(this.x, this.y+dy)) this.y+=dy; this.x=Math.max(this.radius, Math.min(canvas.width-this.radius, this.x)); this.y=Math.max(this.radius, Math.min(canvas.height-this.radius, this.y)); } checkWallCollision(x, y) { for (let obs of obstacles) { let cx=Math.max(obs.x, Math.min(x, obs.x+obs.size)); let cy=Math.max(obs.y, Math.min(y, obs.y+obs.size)); if ((x-cx)**2 + (y-cy)**2 < this.radius**2) return true; } return false; } }
@@ -795,14 +808,9 @@
                     this.dead=true; createParticles(this.x, this.y, this.color); playerStats.totalKills++; 
                     addPlayerXp(this.type==='boss'?100:10); 
                     
-                    // Vampire Skill
-                    if(playerStats.skills.includes('vampire') && Math.random() < 0.05) {
-                        player.hp = Math.min(player.maxHp, player.hp + 10);
-                        createParticles(player.x, player.y, '#FF0000');
-                    }
+                    if(playerStats.skills.includes('vampire') && Math.random() < 0.05) { player.hp = Math.min(player.maxHp, player.hp + 10); createParticles(player.x, player.y, '#FF0000'); }
 
                     if(currentMissionId !== 'CUSTOM') {
-                        // Artifact Drop
                         if(this.type === 'artifact_carrier') {
                             let r = Math.random();
                             let dropped = 'rusty_gear';
@@ -828,7 +836,6 @@
                 
                 if(this.specialType !== 'laser' && !(cheats.wallbang && !this.isEnemy)) {
                     for(let obs of obstacles) if(this.x>obs.x && this.x<obs.x+obs.size && this.y>obs.y && this.y<obs.y+obs.size) { 
-                        // Ricochet Skill Logic
                         if(!this.isEnemy && !this.bounced && playerStats.skills.includes('ricochet') && Math.random() < 0.5) {
                             this.vel.x *= -1; this.vel.y *= -1; this.bounced = true; this.x += this.vel.x*2; this.y += this.vel.y*2;
                         } else {
@@ -908,7 +915,6 @@
                 if ((currentMissionId===3||currentMissionId===15||currentMissionId===18) && !bossSpawned && gameTime>1) { spawnEnemyEdge('boss'); if(currentMissionId===15)spawnEnemyEdge('boss'); bossSpawned=true; } 
                 let sr=120; if([3,9,10,13,14,15].includes(currentMissionId)) sr=180; if([4,6,8,11,16,17,18].includes(currentMissionId)) sr=60; 
                 if (Math.floor(gameTime*60)%sr===0) {
-                    // Carrier Logic (20%)
                     let type = 'standard';
                     if(Math.random() < 0.2) type = 'artifact_carrier';
                     if(currentMissionId===16) type = 'tank';
@@ -932,20 +938,24 @@
             if(currentMissionId===14&&gameTime>=60) gameOver(true);
             if(currentMissionId===16&&enemiesKilled>=15) gameOver(true);
             if(currentMissionId===17&&gameTime>=45) gameOver(true);
-            if(currentMissionId===18&&bossSpawned&&enemiesKilled>=3) gameOver(true); // Must kill boss + minions
+            if(currentMissionId===18&&bossSpawned&&enemiesKilled>=3) gameOver(true);
 
             if(currentMissionId===9) { if(Math.hypot(player.x-captureZone.x, player.y-captureZone.y)<captureZone.radius) { zoneTimer+=1/60; if(zoneTimer>=15)gameOver(true); } document.getElementById('stats').innerText=`Zone: ${zoneTimer.toFixed(1)}/15`; } else if(currentMissionId===7) document.getElementById('stats').innerText=`Bomb: ${grenadesKilled}/15`; else document.getElementById('stats').innerText=`Time: ${gameTime.toFixed(0)}`; 
             
             drops.forEach((m,i)=>{ 
                 if(cheats.loot) { let angle = Math.atan2(player.y - m.y, player.x - m.x); m.x += Math.cos(angle) * 5; m.y += Math.sin(angle) * 5; }
-                // Magnet Skill
                 let puDist = player.radius + m.size + (playerStats.skills.includes('magnet') ? 50 : 0);
 
                 if(Math.hypot(m.x-player.x, m.y-player.y) < puDist) { 
                     if(m.type==='medkit'){player.hp=Math.min(player.maxHp, player.hp+25); createParticles(player.x,player.y,'#00FF00');} 
                     else if(m.type==='grenade'){player.grenades++; updateUI(); createParticles(player.x,player.y,'#FFA500');} 
                     else if(m.type==='coin'){playerStats.coins+=10; updateUI(); createParticles(player.x,player.y,'#FFFF00');} 
-                    else if(m.type==='artifact'){playerStats.inventory.push(m.artifactType); createParticles(player.x,player.y,'cyan'); alert("ARTIFACT FOUND!");}
+                    else if(m.type==='artifact'){
+                        playerStats.inventory.push(m.artifactType); 
+                        createParticles(player.x,player.y,'cyan'); 
+                        let artName = artifactTypes.find(a=>a.id===m.artifactType).name;
+                        showArtifactEffect(artName);
+                    }
                     drops.splice(i,1); 
                 } 
             }); 
@@ -965,8 +975,6 @@
             }); 
             particles.forEach((p,i)=>{ if(p.isShockwave){p.radius+=5;p.life--;}else{p.x+=p.vx;p.y+=p.vy;p.life--;} if(p.life<=0)particles.splice(i,1); }); if(screenShake>0) screenShake*=0.9; 
         }
-        
-        function constructorDrop(x,y,type,aType){this.x=x;this.y=y;this.type=type;this.artifactType=aType;this.size=20;} // Helper
 
         function drawGame() { 
             ctx.clearRect(0,0,canvas.width, canvas.height);
