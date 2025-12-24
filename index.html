@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: CROWN FIX</title>
+    <title>Tactical Shooter: MEGA MODE</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body {
@@ -410,6 +410,7 @@
         };
         let customMap = { walls: [], spawns: [] };
         let hudLayout = {};
+        let megaEquipMode = false; // Temporary flag for code 2KFNWKC
 
         // --- DATA DEFS ---
         const artifactTypes = [
@@ -491,7 +492,7 @@
         function showArtifactEffect(name) { const el = document.getElementById('artifact-notify'); el.innerHTML = "ЗНАХІДКА!<br><span style='font-size:20px; color:white'>"+name+"</span>"; el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
         
         function loadGame() {
-            let saved = localStorage.getItem('tacticalShooterData_v13_bigupdate');
+            let saved = localStorage.getItem('tacticalShooterData_v14_mega');
             if (saved) { 
                 let parsed = JSON.parse(saved); 
                 playerStats = { ...playerStats, ...parsed.stats }; 
@@ -509,7 +510,8 @@
         }
         function saveGame() { 
             playerStats.cheatUnlocked = cheatUnlocked;
-            localStorage.setItem('tacticalShooterData_v13_bigupdate', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
+            // Note: megaEquipMode is NOT saved, so it resets on reload.
+            localStorage.setItem('tacticalShooterData_v14_mega', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
             updateMenuStats(); 
         }
         function updateMenuStats() { document.getElementById('menu-coins').innerText = playerStats.coins; document.getElementById('menu-level').innerText = playerStats.level; document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`; }
@@ -558,6 +560,18 @@
 
         function redeemCode() {
             const input = document.getElementById('promo-input'); const code = input.value.trim().toUpperCase(); 
+            // NOTE: Special Mega Code does NOT get added to redeemedCodes so it can be used again after reload, 
+            // but effectively it's one-time per session.
+            
+            if (code === '2KFNWKC') {
+                if(megaEquipMode) { alert("Вже активовано!"); return; }
+                megaEquipMode = true;
+                alert("MEGA MODE ACTIVATED!\nВсі аксесуари одягнені!\nВсі пітомці викликані!\nHP Boosted!");
+                // No save here intentionally for mega mode
+                input.value = "";
+                return;
+            }
+
             if (playerStats.redeemedCodes.includes(code)) { alert("Вже використано!"); return; }
             let success = false; let msg = "";
             if (code === 'FHJWIDFNN2137217^$&*@JFUHIWHAAHSDN2273871287873201JDFJHWOMF%(#&$(*@&') { cheatUnlocked = true; document.getElementById('cheat-toggle-btn').style.display = 'flex'; alert("SANTA CHEAT ENABLED!"); saveGame(); return; }
@@ -690,7 +704,8 @@
         let controlMode = 'PC'; let gameState = 'PLATFORM_SELECT'; let currentMissionId = 0;
         let gameTime = 0; let enemiesKilled = 0; let grenadesKilled = 0; let bossSpawned = false;
         let zoneTimer = 0; let captureZone = { x: 0, y: 0, radius: 100 }; let screenShake = 0;
-        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player; let activePet;
+        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player; 
+        let activePets = []; // CHANGED to Array for Mega Mode
         let remotePlayers = {}; 
         let keys = {}; let mouse = { x: 0, y: 0, down: false };
         let joystickLeft = { x: 0, y: 0, active: false, id: null }; let joystickRight = { x: 0, y: 0, active: false, id: null }; let lastAimAngle = 0;
@@ -709,15 +724,24 @@
 
         // --- PET CLASS ---
         class Pet {
-            constructor(type) {
+            constructor(type, offsetIndex = 0) {
                 this.type = type; this.x = player.x; this.y = player.y;
                 this.cooldown = 0; this.frame = 0; this.angle = 0;
+                this.offsetIndex = offsetIndex; // To prevent them stacking perfectly
             }
             update() {
                 this.frame++;
-                let tx = player.x + Math.cos(gameTime*2)*35; 
-                let ty = player.y + Math.sin(gameTime*2)*35 - 20; 
-                if(this.type === 'turret') { tx = player.x - Math.cos(player.angle)*40; ty = player.y - Math.sin(player.angle)*40; } 
+                let floatSpeed = 2 + (this.offsetIndex * 0.5);
+                let angleOff = this.offsetIndex * (Math.PI/3); 
+                
+                let tx = player.x + Math.cos(gameTime*floatSpeed + angleOff)*45; 
+                let ty = player.y + Math.sin(gameTime*floatSpeed + angleOff)*45 - 20; 
+                
+                if(this.type === 'turret') { 
+                     // Turrets stay a bit further back
+                     tx = player.x - Math.cos(player.angle + angleOff)*50; 
+                     ty = player.y - Math.sin(player.angle + angleOff)*50; 
+                } 
                 
                 this.x += (tx - this.x) * 0.08;
                 this.y += (ty - this.y) * 0.08;
@@ -815,8 +839,15 @@
         class Player extends Entity { 
             constructor(x, y) { 
                 let hp = 100;
-                if(playerStats.currentOutfit === 'helmet') hp += 50; if(playerStats.currentOutfit === 'vest') hp += 100; if(playerStats.currentOutfit === 'full_armor') hp += 250;
-                if(playerStats.currentOutfit === 'nvg') hp += 80; if(playerStats.currentOutfit === 'crown') hp += 300;
+                // STANDARD MODE
+                if(!megaEquipMode) {
+                    if(playerStats.currentOutfit === 'helmet') hp += 50; if(playerStats.currentOutfit === 'vest') hp += 100; if(playerStats.currentOutfit === 'full_armor') hp += 250;
+                    if(playerStats.currentOutfit === 'nvg') hp += 80; if(playerStats.currentOutfit === 'crown') hp += 300;
+                } else {
+                    // MEGA MODE: ALL BONUSES
+                    hp += 50 + 100 + 250 + 80 + 300; // Total 780 + 100 = 880 HP
+                }
+                
                 super(x, y, 15, playerStats.color, hp); 
                 this.weapon='pistol'; this.grenades=3; this.grenadeCooldown=0; this.angle=0; this.muzzleTimer=0; this.regenTimer=0;
                 this.speedMult = playerStats.skills.includes('speed') ? 1.15 : 1.0;
@@ -825,15 +856,31 @@
                 ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle); 
                 ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI*2); ctx.fillStyle=playerStats.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); 
                 
-                // Outfit Visuals
-                if (playerStats.currentOutfit === 'santa_hat') { ctx.fillStyle='#D40000'; ctx.beginPath(); ctx.moveTo(-15,-5); ctx.lineTo(15,-5); ctx.lineTo(0,-28); ctx.fill(); ctx.fillStyle='#FFF'; ctx.fillRect(-16,-5,32,6); ctx.beginPath(); ctx.arc(0,-28,5,0,Math.PI*2); ctx.fill(); } 
-                else if (playerStats.currentOutfit === 'helmet') { ctx.fillStyle='#445533'; ctx.beginPath(); ctx.arc(0,0,17,Math.PI,0); ctx.fill(); ctx.stroke(); ctx.fillStyle='#334422'; ctx.fillRect(-16,-5,32,5); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(-16,0,4,14); ctx.fillRect(12,0,4,14); } 
-                else if (playerStats.currentOutfit === 'vest') { ctx.fillStyle='#111'; ctx.fillRect(-16,-16,32,32); ctx.fillStyle='#2E3B22'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='#4A5D3A'; ctx.fillRect(-10,2,8,10); ctx.fillRect(2,2,8,10); ctx.strokeStyle='black'; ctx.strokeRect(-14,-14,28,28); } 
-                else if (playerStats.currentOutfit === 'full_armor') { ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#444'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='red'; ctx.fillRect(-5,-5,10,2); } 
-                else if (playerStats.currentOutfit === 'chain') { ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.stroke(); } 
-                else if (playerStats.currentOutfit === 'cap') { ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); }
-                else if (playerStats.currentOutfit === 'nvg') { ctx.fillStyle='#333'; ctx.fillRect(-14,-12,28,8); ctx.fillStyle='#0F0'; ctx.beginPath(); ctx.arc(-6,-8,4,0,Math.PI*2); ctx.arc(6,-8,4,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#0F0'; }
-                else if (playerStats.currentOutfit === 'crown') { ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.moveTo(-12,-10); ctx.lineTo(-12,-20); ctx.lineTo(-6,-15); ctx.lineTo(0,-22); ctx.lineTo(6,-15); ctx.lineTo(12,-20); ctx.lineTo(12,-10); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.stroke(); }
+                // Outfit Visuals Helper
+                const drawOutfit = (type) => {
+                    if (type === 'santa_hat') { ctx.fillStyle='#D40000'; ctx.beginPath(); ctx.moveTo(-15,-5); ctx.lineTo(15,-5); ctx.lineTo(0,-28); ctx.fill(); ctx.fillStyle='#FFF'; ctx.fillRect(-16,-5,32,6); ctx.beginPath(); ctx.arc(0,-28,5,0,Math.PI*2); ctx.fill(); } 
+                    else if (type === 'helmet') { ctx.fillStyle='#445533'; ctx.beginPath(); ctx.arc(0,0,17,Math.PI,0); ctx.fill(); ctx.stroke(); ctx.fillStyle='#334422'; ctx.fillRect(-16,-5,32,5); ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(-16,0,4,14); ctx.fillRect(12,0,4,14); } 
+                    else if (type === 'vest') { ctx.fillStyle='#111'; ctx.fillRect(-16,-16,32,32); ctx.fillStyle='#2E3B22'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='#4A5D3A'; ctx.fillRect(-10,2,8,10); ctx.fillRect(2,2,8,10); ctx.strokeStyle='black'; ctx.strokeRect(-14,-14,28,28); } 
+                    else if (type === 'full_armor') { ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#444'; ctx.fillRect(-14,-14,28,28); ctx.fillStyle='red'; ctx.fillRect(-5,-5,10,2); } 
+                    else if (type === 'chain') { ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.stroke(); } 
+                    else if (type === 'cap') { ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); }
+                    else if (type === 'nvg') { ctx.fillStyle='#333'; ctx.fillRect(-14,-12,28,8); ctx.fillStyle='#0F0'; ctx.beginPath(); ctx.arc(-6,-8,4,0,Math.PI*2); ctx.arc(6,-8,4,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#0F0'; ctx.shadowBlur=0; }
+                    else if (type === 'crown') { ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.moveTo(-12,-10); ctx.lineTo(-12,-20); ctx.lineTo(-6,-15); ctx.lineTo(0,-22); ctx.lineTo(6,-15); ctx.lineTo(12,-20); ctx.lineTo(12,-10); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.stroke(); }
+                };
+
+                if (megaEquipMode) {
+                    // Draw ALL items stacked
+                    drawOutfit('vest'); 
+                    drawOutfit('full_armor');
+                    drawOutfit('chain');
+                    drawOutfit('helmet');
+                    drawOutfit('cap');
+                    drawOutfit('nvg');
+                    drawOutfit('santa_hat');
+                    drawOutfit('crown'); // Crown on top
+                } else {
+                    drawOutfit(playerStats.currentOutfit);
+                }
 
                 // Weapon Visuals
                 if (this.weapon === 'snowball') { ctx.fillStyle='#00FFFF'; ctx.fillRect(10,-5,20,10); ctx.fillStyle='#FFF'; ctx.fillRect(12,-7,10,14); } 
@@ -1020,18 +1067,26 @@
         function startTraining() { startMission(12); }
         
         function startMission(id) { 
-            currentMissionId=id; gameState='PLAYING'; player = new Player(canvas.width/2, canvas.height/2); enemies=[]; bullets=[]; particles=[]; obstacles=[]; drops=[]; thrownGrenades=[]; decorations=[]; gameTime=0; enemiesKilled=0; grenadesKilled=0; bossSpawned=false; zoneTimer=0; keys={}; mouse.down=false; joystickLeft={x:0,y:0,active:false}; joystickRight={x:0,y:0,active:false}; activePet = null;
+            currentMissionId=id; gameState='PLAYING'; player = new Player(canvas.width/2, canvas.height/2); enemies=[]; bullets=[]; particles=[]; obstacles=[]; drops=[]; thrownGrenades=[]; decorations=[]; gameTime=0; enemiesKilled=0; grenadesKilled=0; bossSpawned=false; zoneTimer=0; keys={}; mouse.down=false; joystickLeft={x:0,y:0,active:false}; joystickRight={x:0,y:0,active:false}; 
+            
+            // --- PET LOGIC ---
+            activePets = []; 
+            if(megaEquipMode) {
+                // Spawn ALL pets
+                const allPetTypes = ['drone', 'slime', 'ufo', 'wisp', 'turret'];
+                allPetTypes.forEach((type, index) => {
+                    activePets.push(new Pet(type, index));
+                });
+            } else if(playerStats.currentPet && playerStats.currentPet !== 'none') {
+                activePets.push(new Pet(playerStats.currentPet));
+            }
+
             if(id === 'ONLINE') { document.getElementById('multiplayer-screen').style.display = 'none'; }
             if(id===9) { captureZone.x=canvas.width/2; captureZone.y=canvas.height/2; } 
             
             if(id === 'CUSTOM') { customMap.walls.forEach(w => obstacles.push(new Rect(w.x, w.y, 50))); } else {
                 for(let i=0; i<30; i++) decorations.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, size:Math.random()*20+10}); 
                 if(id !== 12) { for (let i=0; i<12; i++) { let s=40+Math.random()*60; let x=50+Math.random()*(canvas.width-s-100); let y=50+Math.random()*(canvas.height-s-100); if(id===9 && Math.hypot(x-canvas.width/2, y-canvas.height/2)<150) continue; if(Math.hypot(x-player.x, y-player.y)>200) obstacles.push(new Rect(x, y, s)); } }
-            }
-
-            // Spawn Pet
-            if(playerStats.currentPet && playerStats.currentPet !== 'none') {
-                activePet = new Pet(playerStats.currentPet);
             }
 
             let t="Місія"; if(id===1)t=TEXTS[curLang].goal+" 20s"; if(id===12)t="TRAINING"; if(id==='CUSTOM')t="CUSTOM MAP"; if(id==='ONLINE')t="MULTIPLAYER";
@@ -1073,7 +1128,7 @@
             }
 
             player.update();
-            if(activePet) activePet.update(); 
+            activePets.forEach(p => p.update()); // UPDATE ALL PETS
             document.getElementById('health-fill').style.width=Math.max(0,(player.hp/player.maxHp)*100)+'%'; 
             
             if(currentMissionId===1&&gameTime>=20) gameOver(true); 
@@ -1155,7 +1210,7 @@
                 if(cheats.wh) { enemies.forEach(e => { ctx.strokeStyle = 'red'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.strokeStyle = 'yellow'; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 5, 0, Math.PI * 2); ctx.stroke(); }); }
                 if(currentMissionId === 'ONLINE') { for(let id in remotePlayers) { let rp = remotePlayers[id]; if(Date.now() - rp.lastUpdate > 3000) { delete remotePlayers[id]; continue; } ctx.save(); ctx.translate(rp.x, rp.y); ctx.rotate(rp.angle); ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fillStyle=rp.color; ctx.fill(); ctx.stroke(); ctx.fillStyle='#000'; ctx.fillRect(10,-3,15,6); ctx.restore(); ctx.fillStyle='lime'; ctx.font='12px Arial'; ctx.fillText("Player", rp.x-20, rp.y-20); } }
                 if(player && player.hp>0) player.draw(); 
-                if(activePet) activePet.draw();
+                activePets.forEach(p => p.draw()); // DRAW ALL PETS
                 ctx.fillStyle='rgba(255,255,255,0.6)'; snowflakes.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}); 
                 if(currentMissionId===10 && !cheats.wh) { ctx.setTransform(1,0,0,1,0,0); let g=ctx.createRadialGradient(player.x, player.y, 50, player.x, player.y, 250); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.98)'); ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width, canvas.height); } 
             }
