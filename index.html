@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: ARTIFACTS FIX</title>
+    <title>Tactical Shooter: PETS UPDATE</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body {
@@ -31,7 +31,7 @@
         }
         .cheat-checkbox { transform: scale(1.5); }
         
-        /* --- EXISTING UI --- */
+        /* --- UI ELEMENTS --- */
         #game-ui {
             display: none; position: absolute; top: 10px; left: 10px; pointer-events: none;
             width: 100%; box-sizing: border-box; padding-right: 20px; z-index: 5;
@@ -90,8 +90,8 @@
 
         /* SHOP & SKILLS */
         #shop-screen, #skills-screen { display: none; }
-        .shop-container { display: flex; gap: 20px; width: 95%; max-width: 900px; justify-content: center; flex-wrap: wrap; }
-        .shop-column { background: #223; padding: 15px; border: 2px solid #558; width: 220px; }
+        .shop-container { display: flex; gap: 20px; width: 95%; max-width: 1000px; justify-content: center; flex-wrap: wrap; }
+        .shop-column { background: #223; padding: 15px; border: 2px solid #558; width: 200px; }
         .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
         .buy-btn { background: #222; border: 1px solid #FFFF00; color: #FFFF00; padding: 5px 10px; cursor: pointer; font-size: 10px; }
         .buy-btn.owned { background: #004400; border-color: #00FF00; color: white; cursor: default; }
@@ -270,6 +270,10 @@
                 </div>
             </div>
             <div class="shop-column">
+                <h3>УЛЮБЛЕНЦІ (LVL 15)</h3>
+                <div id="pets-list"></div>
+            </div>
+            <div class="shop-column">
                 <h3>ІНВЕНТАР (SELL)</h3>
                 <div id="inventory-list" style="font-size:12px; color:#aaa;">Пусто...</div>
             </div>
@@ -361,7 +365,6 @@
         let cheats = { aim: false, wh: false, loot: false, wallbang: false };
         let cheatUnlocked = false;
 
-        // Make Cheat Button Draggable
         const cheatBtn = document.getElementById('cheat-toggle-btn');
         let isDraggingCheat = false;
         let cheatDragOffset = {x:0, y:0};
@@ -400,9 +403,10 @@
         let playerStats = {
             totalKills: 0, coins: 0, color: '#0077FF', xp: 0, level: 1, nextLevelXp: 100,
             unlockedWeapons: ['pistol', 'rifle', 'shotgun', 'sniper'],
-            unlockedOutfits: ['none'], currentOutfit: 'none', redeemedCodes: [], godMode: false,
-            inventory: [], // Artifacts
-            skills: [] // Purchased skills ID
+            unlockedOutfits: ['none'], currentOutfit: 'none', 
+            redeemedCodes: [], godMode: false,
+            inventory: [], skills: [],
+            unlockedPets: ['none'], currentPet: 'none'
         };
         let customMap = { walls: [], spawns: [] };
         let hudLayout = {};
@@ -446,7 +450,7 @@
             };
             saveGame(); resetHudEditUI();
         }
-        function resetHud() { hudLayout = {}; resetHudEditUI(); location.reload(); } // Simple reset via reload to clear inline styles
+        function resetHud() { hudLayout = {}; resetHudEditUI(); location.reload(); } 
         function resetHudEditUI() {
             isHudEditing = false;
             document.getElementById('hud-edit-overlay').style.display='none';
@@ -483,7 +487,7 @@
         function showArtifactEffect(name) { const el = document.getElementById('artifact-notify'); el.innerHTML = "ЗНАХІДКА!<br><span style='font-size:20px; color:white'>"+name+"</span>"; el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
         
         function loadGame() {
-            let saved = localStorage.getItem('tacticalShooterData_v11_artfix');
+            let saved = localStorage.getItem('tacticalShooterData_v12_pets');
             if (saved) { 
                 let parsed = JSON.parse(saved); 
                 playerStats = { ...playerStats, ...parsed.stats }; 
@@ -492,6 +496,8 @@
                 if(playerStats.cheatUnlocked) { cheatUnlocked=true; document.getElementById('cheat-toggle-btn').style.display='flex'; }
                 if(!playerStats.inventory) playerStats.inventory = [];
                 if(!playerStats.skills) playerStats.skills = [];
+                if(!playerStats.unlockedPets) playerStats.unlockedPets = ['none'];
+                if(!playerStats.currentPet) playerStats.currentPet = 'none';
                 playerStats.nextLevelXp = getNextLevelXp(playerStats.level); 
                 applyHud();
             }
@@ -499,7 +505,7 @@
         }
         function saveGame() { 
             playerStats.cheatUnlocked = cheatUnlocked;
-            localStorage.setItem('tacticalShooterData_v11_artfix', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
+            localStorage.setItem('tacticalShooterData_v12_pets', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
             updateMenuStats(); 
         }
         function updateMenuStats() { document.getElementById('menu-coins').innerText = playerStats.coins; document.getElementById('menu-level').innerText = playerStats.level; document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`; }
@@ -518,6 +524,13 @@
                 { id: 'minigun', name: 'КУЛЕМЕТ (LVL 5)', price: 1000, levelReq: 5 },
                 { id: 'bazooka', name: 'БАЗУКА (LVL 8)', price: 5000, levelReq: 8 },
                 { id: 'laser', name: 'ЛАЗЕР (LVL 12)', price: 10000, levelReq: 12 }
+            ],
+            pets: [
+                { id: 'none', name: 'Немає', price: 0 },
+                { id: 'drone', name: 'Бойовий Дрон', price: 5000, levelReq: 15 },
+                { id: 'robodog', name: 'Робо-Пес', price: 8000, levelReq: 15 },
+                { id: 'slime', name: 'Токсик Слайм', price: 12000, levelReq: 18 },
+                { id: 'ufo', name: 'Міні НЛО', price: 20000, levelReq: 20 }
             ]
         };
 
@@ -528,6 +541,7 @@
             if(act==='unlock') {
                 shopItems.outfits.forEach(o=> { if(!playerStats.unlockedOutfits.includes(o.id)) playerStats.unlockedOutfits.push(o.id); });
                 shopItems.weapons.forEach(w=> { if(!playerStats.unlockedWeapons.includes(w.id)) playerStats.unlockedWeapons.push(w.id); });
+                shopItems.pets.forEach(p=> { if(!playerStats.unlockedPets.includes(p.id)) playerStats.unlockedPets.push(p.id); });
             }
             saveGame(); updateMenuStats();
         }
@@ -555,7 +569,6 @@
         function openShop() { document.getElementById('menu-overlay').style.display='none'; document.getElementById('shop-screen').style.display='flex'; document.getElementById('shop-coins').innerText=playerStats.coins; document.getElementById('shop-level').innerText=playerStats.level; renderShopItems(); updatePreview(); }
         function closeShop() { saveGame(); document.getElementById('shop-screen').style.display='none'; document.getElementById('menu-overlay').style.display='flex'; }
         
-        // --- SKILLS MENU FUNCTIONS ---
         function openSkills() { document.getElementById('menu-overlay').style.display='none'; document.getElementById('skills-screen').style.display='flex'; document.getElementById('skill-coins').innerText=playerStats.coins; document.getElementById('skill-level').innerText=playerStats.level; renderSkills(); }
         function closeSkills() { saveGame(); document.getElementById('skills-screen').style.display='none'; document.getElementById('menu-overlay').style.display='flex'; }
         
@@ -563,23 +576,15 @@
             const sl = document.getElementById('skills-list'); sl.innerHTML='';
             skillDefinitions.forEach(s => {
                 let div=document.createElement('div'); div.className='shop-column'; div.style.marginBottom='10px';
-                let owned = playerStats.skills.includes(s.id);
-                let locked = playerStats.level < s.lvl;
+                let owned = playerStats.skills.includes(s.id); let locked = playerStats.level < s.lvl;
                 let btnText = owned ? 'KUPLEHO' : (locked ? 'LVL '+s.lvl : s.price+'$');
-                let btnClass = owned ? 'buy-btn owned' : 'buy-btn';
-                let dis = owned || locked ? 'disabled' : '';
-                
-                div.innerHTML = `<h3>${s.name}</h3><div style="font-size:12px; color:#aaa; margin-bottom:5px;">${s.desc}</div>
-                <button class="${btnClass}" ${dis} onclick="buySkill('${s.id}', ${s.price})">${btnText}</button>`;
+                let btnClass = owned ? 'buy-btn owned' : 'buy-btn'; let dis = owned || locked ? 'disabled' : '';
+                div.innerHTML = `<h3>${s.name}</h3><div style="font-size:12px; color:#aaa; margin-bottom:5px;">${s.desc}</div><button class="${btnClass}" ${dis} onclick="buySkill('${s.id}', ${s.price})">${btnText}</button>`;
                 sl.appendChild(div);
             });
         }
         function buySkill(id, price) {
-            if(playerStats.coins >= price && !playerStats.skills.includes(id)) {
-                playerStats.coins -= price; playerStats.skills.push(id);
-                document.getElementById('skill-coins').innerText = playerStats.coins;
-                renderSkills(); saveGame();
-            }
+            if(playerStats.coins >= price && !playerStats.skills.includes(id)) { playerStats.coins -= price; playerStats.skills.push(id); document.getElementById('skill-coins').innerText = playerStats.coins; renderSkills(); saveGame(); }
         }
 
         function renderShopItems() {
@@ -599,6 +604,18 @@
                 div.innerHTML=`<span>${i.name}</span><button class="buy-btn ${owned?'owned':''}" onclick="handleShopAction('weapon','${i.id}',${i.price})" ${owned||locked?'disabled':''}>${btnText}</button>`;
                 wl.appendChild(div);
             });
+            const pl = document.getElementById('pets-list'); pl.innerHTML='';
+            shopItems.pets.forEach(i => {
+                let div=document.createElement('div'); div.className='shop-item';
+                let owned=playerStats.unlockedPets.includes(i.id), equipped=playerStats.currentPet===i.id;
+                let locked = i.levelReq && playerStats.level < i.levelReq;
+                let btnText = owned ? (equipped ? 'V' : 'Взяти') : (locked ? 'LVL '+i.levelReq : i.price+'$');
+                let btnClass = owned ? (equipped ? 'buy-btn equipped' : 'buy-btn owned') : 'buy-btn';
+                let disabled = (!owned && locked) ? 'disabled' : '';
+                div.innerHTML=`<span>${i.name}</span><button class="${btnClass}" ${disabled} onclick="handleShopAction('pet','${i.id}',${i.price})">${btnText}</button>`;
+                pl.appendChild(div);
+            });
+
             // Inventory Rendering
             const il = document.getElementById('inventory-list'); il.innerHTML='';
             if(playerStats.inventory.length === 0) il.innerHTML='Пусто...';
@@ -606,25 +623,23 @@
                 let counts = {};
                 playerStats.inventory.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
                 for(let id in counts) {
-                    let art = artifactTypes.find(a => a.id === id);
-                    if(!art) continue;
+                    let art = artifactTypes.find(a => a.id === id); if(!art) continue;
                     let div = document.createElement('div'); div.className='shop-item';
                     div.innerHTML = `<span>${art.name} x${counts[id]}</span><button class="buy-btn" onclick="sellArtifact('${id}')">SELL ${art.price}$</button>`;
                     il.appendChild(div);
                 }
             }
         }
-        function handleShopAction(type, id, price) { if(type==='outfit') { if(playerStats.unlockedOutfits.includes(id)) playerStats.currentOutfit=id; else if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedOutfits.push(id); playerStats.currentOutfit=id; } } else if(type==='weapon' && !playerStats.unlockedWeapons.includes(id)) { if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedWeapons.push(id); } } updatePreview(); renderShopItems(); document.getElementById('shop-coins').innerText=playerStats.coins; }
+        function handleShopAction(type, id, price) { 
+            if(type==='outfit') { if(playerStats.unlockedOutfits.includes(id)) playerStats.currentOutfit=id; else if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedOutfits.push(id); playerStats.currentOutfit=id; } } 
+            else if(type==='weapon' && !playerStats.unlockedWeapons.includes(id)) { if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedWeapons.push(id); } } 
+            else if(type==='pet') { if(playerStats.unlockedPets.includes(id)) playerStats.currentPet=id; else if(playerStats.coins>=price) { playerStats.coins-=price; playerStats.unlockedPets.push(id); playerStats.currentPet=id; } }
+            updatePreview(); renderShopItems(); document.getElementById('shop-coins').innerText=playerStats.coins; 
+        }
         
         function sellArtifact(id) {
-            let art = artifactTypes.find(a => a.id === id);
-            let idx = playerStats.inventory.indexOf(id);
-            if(idx > -1 && art) {
-                playerStats.inventory.splice(idx, 1);
-                playerStats.coins += art.price;
-                document.getElementById('shop-coins').innerText = playerStats.coins;
-                renderShopItems(); saveGame();
-            }
+            let art = artifactTypes.find(a => a.id === id); let idx = playerStats.inventory.indexOf(id);
+            if(idx > -1 && art) { playerStats.inventory.splice(idx, 1); playerStats.coins += art.price; document.getElementById('shop-coins').innerText = playerStats.coins; renderShopItems(); saveGame(); }
         }
 
         function updatePreview() { 
@@ -662,7 +677,7 @@
         let controlMode = 'PC'; let gameState = 'PLATFORM_SELECT'; let currentMissionId = 0;
         let gameTime = 0; let enemiesKilled = 0; let grenadesKilled = 0; let bossSpawned = false;
         let zoneTimer = 0; let captureZone = { x: 0, y: 0, radius: 100 }; let screenShake = 0;
-        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player; 
+        let obstacles = []; let bullets = []; let enemies = []; let particles = []; let drops = []; let thrownGrenades = []; let decorations = []; let snowflakes = []; let player; let activePet;
         let remotePlayers = {}; 
         let keys = {}; let mouse = { x: 0, y: 0, down: false };
         let joystickLeft = { x: 0, y: 0, active: false, id: null }; let joystickRight = { x: 0, y: 0, active: false, id: null }; let lastAimAngle = 0;
@@ -679,14 +694,84 @@
         function sendNetworkData(data) { connections.forEach(c => c.send(data)); }
         function handleNetworkData(data) { if(data.type === 'move') { remotePlayers[data.id] = data; remotePlayers[data.id].lastUpdate = Date.now(); } else if(data.type === 'shoot') { bullets.push(new Bullet(data.x, data.y, data.vel, false, data.dmg, 4, data.wType)); } else if(data.type === 'spawnEnemy' && !isHost) { enemies.push(new Enemy(data.x, data.y, data.kind)); } }
 
+        // --- PET CLASS ---
+        class Pet {
+            constructor(type) {
+                this.type = type; this.x = player.x; this.y = player.y;
+                this.cooldown = 0; this.frame = 0;
+            }
+            update() {
+                this.frame++;
+                // Follow Player (Lerp for smooth floating)
+                let tx = player.x + Math.cos(gameTime*2)*30; 
+                let ty = player.y + Math.sin(gameTime*2)*30 - 20; // Float slightly above/side
+                this.x += (tx - this.x) * 0.1;
+                this.y += (ty - this.y) * 0.1;
+
+                if(this.cooldown > 0) this.cooldown--;
+
+                // Attack Logic
+                let nearest = null; let minD = 200;
+                enemies.forEach(e => { let d = Math.hypot(e.x - this.x, e.y - this.y); if(d < minD) { minD = d; nearest = e; } });
+
+                if(nearest && this.cooldown <= 0) {
+                    if(this.type === 'drone') {
+                        let a = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+                        bullets.push(new Bullet(this.x, this.y, {x:Math.cos(a)*10, y:Math.sin(a)*10}, false, 15, 2, 'laser'));
+                        this.cooldown = 60;
+                    } else if (this.type === 'robodog') {
+                        if(minD < 50) { nearest.takeDamage(25); createParticles(nearest.x, nearest.y, 'grey'); this.cooldown = 45; }
+                        else { this.x += (nearest.x - this.x)*0.2; this.y += (nearest.y - this.y)*0.2; } // Dash to enemy
+                    } else if (this.type === 'slime') {
+                        let a = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+                        bullets.push(new Bullet(this.x, this.y, {x:Math.cos(a)*8, y:Math.sin(a)*8}, false, 5, 5, 'slime')); // Custom slime bullet
+                        this.cooldown = 30;
+                    } else if (this.type === 'ufo') {
+                         let a = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+                        bullets.push(new Bullet(this.x, this.y, {x:Math.cos(a)*12, y:Math.sin(a)*12}, false, 30, 4, 'plasma'));
+                        this.cooldown = 90;
+                    }
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                if(this.type === 'drone') {
+                    ctx.fillStyle = '#555'; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill(); // Body
+                    ctx.fillStyle = 'cyan'; ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fill(); // Eye
+                    ctx.strokeStyle = '#333'; ctx.lineWidth=2;
+                    ctx.beginPath(); ctx.moveTo(-15,0); ctx.lineTo(15,0); ctx.moveTo(0,-15); ctx.lineTo(0,15); ctx.stroke(); // Arms
+                    ctx.fillStyle = '#888'; // Props
+                    let off = Math.sin(this.frame*0.5)*5;
+                    ctx.fillRect(-18,-2,6,4); ctx.fillRect(12,-2,6,4); ctx.fillRect(-2,-18,4,6); ctx.fillRect(-2,12,4,6);
+                } else if(this.type === 'robodog') {
+                    ctx.fillStyle = '#8B4513'; ctx.fillRect(-10,-6,20,12); // Body
+                    ctx.fillRect(8,-10,10,10); // Head
+                    ctx.fillStyle = 'yellow'; ctx.fillRect(15,-8,2,2); // Eye
+                    ctx.fillStyle = '#555'; // Legs
+                    let l = Math.sin(this.frame*0.2)*3;
+                    ctx.fillRect(-8,6+l,4,6); ctx.fillRect(4,6-l,4,6);
+                } else if(this.type === 'slime') {
+                    ctx.fillStyle = '#00FF00'; ctx.globalAlpha = 0.7;
+                    let s = 10 + Math.sin(this.frame*0.1)*2;
+                    ctx.beginPath(); ctx.arc(0,0,s,0,Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#000'; ctx.globalAlpha = 1;
+                    ctx.beginPath(); ctx.arc(-3,-2,2,0,Math.PI*2); ctx.arc(3,-2,2,0,Math.PI*2); ctx.fill();
+                } else if(this.type === 'ufo') {
+                    ctx.fillStyle = '#AAA'; ctx.beginPath(); ctx.ellipse(0, 5, 15, 5, 0, 0, Math.PI*2); ctx.fill(); // Disk
+                    ctx.fillStyle = 'rgba(0,255,255,0.5)'; ctx.beginPath(); ctx.arc(0,0,8,Math.PI,0); ctx.fill(); // Dome
+                    ctx.fillStyle = this.frame%20<10 ? 'red':'lime'; ctx.fillRect(-5,5,2,2); ctx.fillRect(0,7,2,2); ctx.fillRect(5,5,2,2);
+                }
+                ctx.restore();
+            }
+        }
+
         class DropItem { constructor(x, y, type, aType) { this.x = x; this.y = y; this.type = type; this.artifactType=aType; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; 
             if(this.type==='artifact') { 
-                // VISUALS FOR ARTIFACTS
                 if(this.artifactType === 'rusty_gear') { ctx.fillStyle='#8B4513'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#DAA520'; ctx.fillRect(this.x-5, Y-5, 10, 10); }
                 else if(this.artifactType === 'ancient_coin') { ctx.fillStyle='#DAA520'; ctx.beginPath(); ctx.arc(this.x, Y, 12, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#8B4513'; ctx.stroke(); }
                 else if(this.artifactType === 'blue_crystal') { ctx.fillStyle='#00FFFF'; ctx.shadowBlur=10; ctx.shadowColor='cyan'; ctx.beginPath(); ctx.moveTo(this.x, Y-15); ctx.lineTo(this.x+10, Y); ctx.lineTo(this.x, Y+15); ctx.lineTo(this.x-10, Y); ctx.fill(); ctx.shadowBlur=0; }
                 else if(this.artifactType === 'gold_idol') { ctx.fillStyle='#FFD700'; ctx.fillRect(this.x-8, Y-15, 16, 30); ctx.fillStyle='#000'; ctx.fillRect(this.x-3, Y-10, 2, 2); ctx.fillRect(this.x+1, Y-10, 2, 2); }
-                else { ctx.fillStyle='cyan'; ctx.fillRect(this.x-10, Y-10, 20, 20); } // Fallback
+                else { ctx.fillStyle='cyan'; ctx.fillRect(this.x-10, Y-10, 20, 20); } 
             } else if (this.type === 'medkit') { ctx.fillStyle = '#00CC00'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle = '#FFF'; ctx.fillRect(this.x-3, Y-8, 6, 16); ctx.fillRect(this.x-8, Y-3, 16, 6); } else if (this.type === 'grenade') { ctx.fillStyle = '#FFA500'; ctx.fillRect(this.x-10, Y-10, 20, 20); ctx.fillStyle='#000'; ctx.font="16px Arial"; ctx.fillText("💣", this.x-9, Y+6); } else if (this.type === 'coin') { ctx.fillStyle='#FFFF00'; ctx.beginPath(); ctx.arc(this.x, Y, 10, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.lineWidth=2; ctx.stroke(); ctx.fillStyle='#000'; ctx.font="bold 14px Arial"; ctx.fillText("$", this.x-4, Y+5); } } }
         class GrenadeObj { constructor(x, y, tx, ty) { this.x = x; this.y = y; this.timer = 60; this.dead = false; const angle = Math.atan2(ty - y, tx - x); const dist = Math.hypot(tx - x, ty - y); const speed = Math.min(dist / 20, 10); this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed; this.flyTime = Math.floor(dist / speed); } update() { if (this.flyTime > 0) { this.x += this.vx; this.y += this.vy; this.flyTime--; } this.timer--; if (this.timer <= 0) { this.explode(); this.dead = true; } } explode() { createExplosion(this.x, this.y); screenShake = 15; enemies.forEach(en => { if (Math.hypot(en.x - this.x, en.y - this.y) < 120) { en.takeDamage(150); if (en.hp <= 0) grenadesKilled++; } }); } draw() { ctx.beginPath(); ctx.arc(this.x, this.y, 6, 0, Math.PI*2); ctx.fillStyle = Math.floor(this.timer/5)%2===0 ? 'red' : 'yellow'; ctx.fill(); ctx.strokeStyle='#000'; ctx.stroke(); } }
         class Rect { constructor(x, y, size) { this.x = x; this.y = y; this.size = size; } draw() { ctx.fillStyle = '#556'; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.fillStyle = '#EEF'; ctx.beginPath(); ctx.moveTo(this.x-2, this.y); ctx.lineTo(this.x+this.size+2, this.y); ctx.lineTo(this.x+this.size+2, this.y+15); for(let i=0; i<this.size; i+=10) ctx.arc(this.x+this.size-i, this.y+15, 5, 0, Math.PI); ctx.lineTo(this.x-2, this.y+15); ctx.fill(); ctx.strokeStyle='#223'; ctx.lineWidth=2; ctx.strokeRect(this.x, this.y, this.size, this.size); } }
@@ -851,6 +936,8 @@
                 if(this.specialType==='snowball') { ctx.fillStyle='#FFF'; ctx.shadowBlur=10; ctx.shadowColor='white'; } 
                 else if(this.specialType==='rocket') { ctx.fillStyle='#004400'; }
                 else if(this.specialType==='laser') { ctx.fillStyle='#FF0000'; ctx.shadowBlur=10; ctx.shadowColor='red'; }
+                else if(this.specialType==='slime') { ctx.fillStyle='#00FF00'; }
+                else if(this.specialType==='plasma') { ctx.fillStyle='#00FFFF'; ctx.shadowBlur=5; }
                 else { ctx.fillStyle=this.isEnemy?(this.radius>4?'#A020F0':'orange'):'#FFFF00'; ctx.shadowBlur=0; } 
                 ctx.fill(); ctx.shadowBlur=0; 
             } 
@@ -876,7 +963,7 @@
         function startTraining() { startMission(12); }
         
         function startMission(id) { 
-            currentMissionId=id; gameState='PLAYING'; player = new Player(canvas.width/2, canvas.height/2); enemies=[]; bullets=[]; particles=[]; obstacles=[]; drops=[]; thrownGrenades=[]; decorations=[]; gameTime=0; enemiesKilled=0; grenadesKilled=0; bossSpawned=false; zoneTimer=0; keys={}; mouse.down=false; joystickLeft={x:0,y:0,active:false}; joystickRight={x:0,y:0,active:false}; 
+            currentMissionId=id; gameState='PLAYING'; player = new Player(canvas.width/2, canvas.height/2); enemies=[]; bullets=[]; particles=[]; obstacles=[]; drops=[]; thrownGrenades=[]; decorations=[]; gameTime=0; enemiesKilled=0; grenadesKilled=0; bossSpawned=false; zoneTimer=0; keys={}; mouse.down=false; joystickLeft={x:0,y:0,active:false}; joystickRight={x:0,y:0,active:false}; activePet = null;
             if(id === 'ONLINE') { document.getElementById('multiplayer-screen').style.display = 'none'; }
             if(id===9) { captureZone.x=canvas.width/2; captureZone.y=canvas.height/2; } 
             
@@ -884,6 +971,12 @@
                 for(let i=0; i<30; i++) decorations.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, size:Math.random()*20+10}); 
                 if(id !== 12) { for (let i=0; i<12; i++) { let s=40+Math.random()*60; let x=50+Math.random()*(canvas.width-s-100); let y=50+Math.random()*(canvas.height-s-100); if(id===9 && Math.hypot(x-canvas.width/2, y-canvas.height/2)<150) continue; if(Math.hypot(x-player.x, y-player.y)>200) obstacles.push(new Rect(x, y, s)); } }
             }
+
+            // Spawn Pet
+            if(playerStats.currentPet && playerStats.currentPet !== 'none') {
+                activePet = new Pet(playerStats.currentPet);
+            }
+
             let t="Місія"; if(id===1)t=TEXTS[curLang].goal+" 20s"; if(id===12)t="TRAINING"; if(id==='CUSTOM')t="CUSTOM MAP"; if(id==='ONLINE')t="MULTIPLAYER";
             document.getElementById('mission-text').innerText=t; document.getElementById('menu-overlay').style.display='none'; document.getElementById('game-ui').style.display='block'; 
             document.getElementById('exit-mission-btn').style.display='block';
@@ -922,7 +1015,8 @@
                 }
             }
 
-            player.update(); 
+            player.update();
+            if(activePet) activePet.update(); 
             document.getElementById('health-fill').style.width=Math.max(0,(player.hp/player.maxHp)*100)+'%'; 
             
             if(currentMissionId===1&&gameTime>=20) gameOver(true); 
@@ -998,6 +1092,7 @@
                 if(cheats.wh) { enemies.forEach(e => { ctx.strokeStyle = 'red'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(e.x, e.y); ctx.stroke(); ctx.strokeStyle = 'yellow'; ctx.beginPath(); ctx.arc(e.x, e.y, e.radius + 5, 0, Math.PI * 2); ctx.stroke(); }); }
                 if(currentMissionId === 'ONLINE') { for(let id in remotePlayers) { let rp = remotePlayers[id]; if(Date.now() - rp.lastUpdate > 3000) { delete remotePlayers[id]; continue; } ctx.save(); ctx.translate(rp.x, rp.y); ctx.rotate(rp.angle); ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fillStyle=rp.color; ctx.fill(); ctx.stroke(); ctx.fillStyle='#000'; ctx.fillRect(10,-3,15,6); ctx.restore(); ctx.fillStyle='lime'; ctx.font='12px Arial'; ctx.fillText("Player", rp.x-20, rp.y-20); } }
                 if(player && player.hp>0) player.draw(); 
+                if(activePet) activePet.draw();
                 ctx.fillStyle='rgba(255,255,255,0.6)'; snowflakes.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}); 
                 if(currentMissionId===10 && !cheats.wh) { ctx.setTransform(1,0,0,1,0,0); let g=ctx.createRadialGradient(player.x, player.y, 50, player.x, player.y, 250); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.98)'); ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width, canvas.height); } 
             }
@@ -1038,12 +1133,9 @@
                 for(let i=0; i<e.changedTouches.length; i++) {
                     if(e.changedTouches[i].identifier === activeHudTouchId) {
                         let t = e.changedTouches[i];
-                        // Strictly set Left/Top to stick to finger, clear others
                         hudDragEl.style.left = (t.clientX - hudDragOffset.x) + 'px';
                         hudDragEl.style.top = (t.clientY - hudDragOffset.y) + 'px';
-                        hudDragEl.style.bottom = 'auto';
-                        hudDragEl.style.right = 'auto';
-                        hudDragEl.style.transform = 'none'; // Fix centered elements
+                        hudDragEl.style.bottom = 'auto'; hudDragEl.style.right = 'auto'; hudDragEl.style.transform = 'none';
                     }
                 }
                 return;
