@@ -1,195 +1,163 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: WINTER FIX</title>
+    <title>Tactical Shooter: FINAL FIXED</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        /* --- СТАРЫЙ ВИЗУАЛ (v14 Style) --- */
         body {
             margin: 0; overflow: hidden; background-color: #1a1a2e;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Courier New', Courier, monospace; /* Тот самый шрифт */
             color: white; user-select: none; -webkit-user-select: none; touch-action: none;
         }
         canvas { display: block; }
-
-        /* --- UI ELEMENTS --- */
+        
+        /* UI ELEMENTS */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 20, 35, 0.98); display: flex; flex-direction: column;
+            background: rgba(10, 20, 40, 0.95); display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 20;
-            background-image: radial-gradient(circle at center, #253045 0%, #0d101b 100%);
         }
+        h1 { margin-bottom: 5px; font-size: 28px; color: #00AAFF; text-align: center; text-transform: uppercase; text-shadow: 0 0 10px white; }
         
-        h1 { margin-bottom: 5px; font-size: 32px; color: #00AAFF; text-align: center; text-transform: uppercase; text-shadow: 0 0 15px #0077FF; letter-spacing: 2px; }
-        .menu-stats { color: #FFFF00; margin-bottom: 15px; font-size: 14px; border: 1px solid #555; padding: 10px; border-radius: 5px; background: rgba(0,0,0,0.5); }
-
-        /* КНОПКИ МЕНЮ СО СНЕГОМ */
-        .mission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; max-height: 50vh; overflow-y: auto; width: 95%; max-width: 800px; padding: 5px;}
-        
+        /* КНОПКИ С ЭФФЕКТОМ СНЕГА */
         .btn {
-            background: linear-gradient(180deg, #2a3a50 0%, #1a202a 100%); 
-            color: white; border: 1px solid #4a5a70; padding: 12px;
-            font-size: 14px; cursor: pointer; text-align: left; font-family: inherit;
-            border-radius: 6px; position: relative; overflow: hidden; transition: all 0.1s;
-            display: flex; flex-direction: column; justify-content: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            background: #222; color: white; border: 2px solid #0077FF; padding: 10px;
+            font-size: 12px; cursor: pointer; text-align: center; font-family: inherit; margin: 2px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 0.1s; position: relative;
         }
-        /* Эффект снега на кнопках */
-        .btn::after { 
-            content: '❄️'; position: absolute; top: 2px; right: 5px; 
-            font-size: 14px; opacity: 0.4; filter: grayscale(100%) brightness(200%);
-        }
-        .btn:hover { background: #3a4a60; border-color: #00AAFF; transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,100,255,0.2); }
-        .btn:active { transform: scale(0.98); }
+        .btn:hover { background: #0077FF; color: black; transform: scale(1.02); }
+        /* СНЕГ ТУТ */
+        .btn::after { content: '❄️'; position: absolute; top: 2px; right: 2px; font-size: 10px; opacity: 0.6; }
         
-        .btn b { font-size: 15px; color: #EEF; display: block; margin-bottom: 3px; }
-        .btn span { font-size: 11px; color: #88AACC; }
+        .btn b { font-size: 14px; margin-bottom: 3px; display:block; color: #EEF; }
+        .btn span { font-size: 10px; color: #aaa; font-weight: normal; }
 
-        /* Стиль особых кнопок */
-        .boss-btn { border-color: #A020F0; background: linear-gradient(180deg, #3a1040 0%, #200525 100%); }
-        .boss-btn b { color: #E0A0FF; }
-        .hard-btn { border-color: #FF3333; background: linear-gradient(180deg, #401010 0%, #250505 100%); }
-        .hard-btn b { color: #FFAAAA; }
-        .special-btn { border-color: #00FFCC; background: linear-gradient(180deg, #002222 0%, #001111 100%); }
-        .special-btn b { color: #AAFFFF; }
-
-        .menu-wide-btn { width: 340px; margin-top:5px; text-align: center; font-weight: bold; font-size: 16px; padding: 12px; background: #222; border: 2px solid #555; display: block;}
-        .shop-btn { border-color: #FFD700; color: #FFD700; background: rgba(50, 40, 0, 0.5); }
-
-        /* ИГРОВОЙ ИНТЕРФЕЙС */
-        #game-ui { display: none; position: absolute; top: 10px; left: 10px; width: 100%; pointer-events: none; z-index: 5; box-sizing: border-box; padding-right: 20px;}
+        .boss-btn { border-color: #A020F0; } .boss-btn b { color: #E0A0FF; }
+        .hard-btn { border-color: #FF3333; } .hard-btn b { color: #FFAAAA; }
+        .special-btn { border-color: #00FFCC; } .special-btn b { color: #AAFFFF; }
+        
+        .mission-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; max-height: 50vh; overflow-y: auto; width: 95%; max-width: 600px;}
+        
+        .menu-wide-btn { width: 340px; margin-top:5px; font-size: 14px; font-weight: bold; }
+        .shop-btn { border-color: #FFFF00; color: #FFFFAA; }
+        
+        /* ИНТЕРФЕЙС В ИГРЕ */
+        #game-ui { display: none; position: absolute; top: 10px; left: 10px; pointer-events: none; width: 100%; box-sizing: border-box; padding-right: 20px; z-index: 5; }
+        #exit-mission-btn { position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); border: 1px solid #FF3333; color: #FF3333; font-family: inherit; cursor: pointer; pointer-events: auto; padding: 5px 15px; font-weight: bold; font-size: 12px; z-index: 100; }
         #top-bar { display: flex; justify-content: space-between; align-items: flex-start; }
-        .stat-box { background: rgba(0, 20, 40, 0.8); padding: 5px 12px; border-radius: 8px; margin-bottom: 5px; font-size: 16px; border: 1px solid rgba(0, 150, 255, 0.3); }
-        #mission-text { font-size: 20px; font-weight: 800; color: #00FFFF; text-shadow: 0 0 10px rgba(0,255,255,0.5); }
+        .stat-box { background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; margin-bottom: 5px; font-size: 16px; border: 1px solid rgba(255,255,255,0.2); }
+        .bar-container { margin-top: 5px; width: 200px; height: 15px; background: #444; border: 2px solid #fff; position: relative; }
+        #health-fill { width: 100%; height: 100%; background: #00FF00; transition: width 0.1s; }
+        #xp-fill { width: 0%; height: 100%; background: #0077FF; transition: width 0.2s; }
         
-        .bar-container { margin-top: 5px; width: 220px; height: 16px; background: #222; border: 1px solid #555; position: relative; border-radius: 4px; overflow: hidden; }
-        #health-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #00FF00, #00CC00); transition: width 0.1s; }
-        #xp-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #0077FF, #00FFFF); transition: width 0.2s; }
-        
-        /* МОБИЛЬНОЕ УПРАВЛЕНИЕ */
-        #mobile-controls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        .joystick-zone { position: absolute; bottom: 40px; width: 90px; height: 90px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; pointer-events: auto; }
-        .joystick-knob { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; background: rgba(0, 119, 255, 0.5); border-radius: 50%; transform: translate(-50%, -50%); }
-        #mobile-grenade-btn { position: absolute; bottom: 100px; right: 130px; width: 50px; height: 50px; background: rgba(255, 165, 0, 0.2); border: 2px solid #FFA500; border-radius: 50%; display: flex; justify-content: center; align-items: center; pointer-events: auto; color: orange; font-size: 20px;}
-        #weapon-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; pointer-events: auto; }
-        .wpn-btn { width: 40px; height: 40px; background: #222; border: 1px solid #444; color: white; font-size: 9px; font-weight: bold; display: flex; justify-content: center; align-items: center; border-radius: 6px; }
-        .wpn-btn.active { border-color: #00AAFF; background: #003366; }
-
-        /* МАГАЗИН И ДР */
+        /* МАГАЗИН И НАСТРОЙКИ */
         #shop-screen, #settings-screen { display: none; }
         .shop-container { display: flex; gap: 20px; width: 95%; max-width: 1000px; justify-content: center; flex-wrap: wrap; }
-        .shop-column { background: #1a2230; padding: 15px; border: 1px solid #334455; width: 200px; border-radius: 8px; }
-        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 12px; }
-        .promo-container { margin-top: 15px; border-top: 1px dashed #555; padding-top: 5px; text-align: center; }
-
-        .lang-btn { width: 80px; padding: 10px; margin: 5px; background: #333; border: 1px solid #555; color: white; cursor: pointer; font-weight: bold; }
+        .shop-column { background: #223; padding: 15px; border: 2px solid #558; width: 200px; }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        
+        /* ЯЗЫКИ */
+        .lang-btn { width: 80px; padding: 10px; margin: 5px; background: #333; border: 1px solid #fff; color: white; cursor: pointer; font-family: inherit; }
         .lang-btn:hover { background: #555; }
 
-        /* NOTIFICATIONS */
-        #levelup-notify, #artifact-notify { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); text-align: center; opacity: 0; pointer-events: none; z-index: 100; transition: opacity 0.5s; }
-        
-        body.mobile-mode .mission-grid { grid-template-columns: 1fr; }
+        /* МОБИЛЬНЫЕ */
+        #mobile-controls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .joystick-zone { position: absolute; bottom: 40px; width: 90px; height: 90px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; pointer-events: auto; }
+        .joystick-knob { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; background: rgba(0, 119, 255, 0.5); border-radius: 50%; transform: translate(-50%, -50%); }
+        #mobile-grenade-btn { position: absolute; bottom: 100px; right: 130px; width: 50px; height: 50px; background: rgba(255, 165, 0, 0.3); border: 2px solid #FFA500; border-radius: 50%; color: #FFA500; font-size: 20px; display: flex; justify-content: center; align-items: center; pointer-events: auto; }
+        #weapon-bar { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; pointer-events: auto; }
+        .wpn-btn { width: 35px; height: 35px; background: #333; border: 1px solid #666; color: white; font-size: 9px; font-weight: bold; display: flex; justify-content: center; align-items: center; border-radius: 5px; font-family: inherit; }
+        .wpn-btn.active { border-color: #0077FF; background: #004488; }
+
+        body.mobile-mode .mission-grid { grid-template-columns: 1fr 1fr; }
     </style>
 </head>
 <body>
 
-    <div id="levelup-notify">
-        <div style="font-size:40px; color:#FFD700; text-shadow:0 0 20px orange; font-weight:900;">LEVEL UP!</div>
-        <div style="font-size:20px; color:white;">HP FULL</div>
+    <div id="levelup-notify" style="position:absolute; top:30%; left:50%; transform:translate(-50%,-50%); text-align:center; opacity:0; pointer-events:none; z-index:100; transition:opacity 0.5s;">
+        <div id="notif-lvl" style="font-size:40px; color:#FFD700; text-shadow:0 0 10px orange; font-weight:bold;">LEVEL UP!</div>
     </div>
-    <div id="artifact-notify">
-        <div style="font-size:30px; color:#00FFFF; text-shadow:0 0 20px blue; font-weight:900;">SECRET FOUND!</div>
-    </div>
-
+    
     <div id="platform-screen" class="overlay" style="z-index: 30;">
-        <h1>WINTER OPS<br><span style="font-size:18px; color:white;">TACTICAL v15.5</span></h1>
-        <div style="margin-top:20px;">
-            <button class="btn menu-wide-btn" onclick="selectPlatform('PC')">💻 PC (Mouse/Keys)</button>
-            <button class="btn menu-wide-btn" onclick="selectPlatform('MOBILE')">📱 Mobile (Touch)</button>
-        </div>
+        <h1 id="title-main">Tactical Shooter<br>❄️ WINTER ❄️</h1>
+        <h2 id="lbl-choose">Control:</h2>
+        <button class="btn menu-wide-btn" onclick="selectPlatform('PC')" id="btn-pc">💻 PC</button>
+        <button class="btn menu-wide-btn" onclick="selectPlatform('MOBILE')" id="btn-mob">📱 Mobile</button>
     </div>
 
     <div id="settings-screen" class="overlay" style="z-index: 35;">
-        <h1 id="lbl-settings">НАСТРОЙКИ</h1>
+        <h1 id="lbl-settings">НАЛАШТУВАННЯ</h1>
         <div style="margin: 20px;">
-            <button class="lang-btn" onclick="setLang('ru')">RU</button>
-            <button class="lang-btn" onclick="setLang('ua')">UA</button>
-            <button class="lang-btn" onclick="setLang('en')">EN</button>
+            <button class="lang-btn" onclick="setLang('uk')">🇺🇦 UKR</button>
+            <button class="lang-btn" onclick="setLang('ru')">🇷🇺 RUS</button>
+            <button class="lang-btn" onclick="setLang('en')">🇺🇸 ENG</button>
         </div>
-        <button class="btn menu-wide-btn" onclick="closeSettings()" style="border-color:red;">OK</button>
+        <button class="btn menu-wide-btn" onclick="closeSettings()" style="border-color:red;" id="btn-set-ok">OK</button>
     </div>
 
     <div id="menu-overlay" class="overlay" style="display: none;">
-        <h1 id="menu-title">КАМПАНИЯ</h1>
-        <div class="menu-stats">
+        <h1 id="menu-title">МЕНЮ МІСІЙ</h1>
+        <div class="menu-stats" style="color: #FFFF00; margin-bottom: 20px; font-size: 14px; border: 1px solid #555; padding: 10px; text-align: center;">
             LVL: <span id="menu-level">1</span> | XP: <span id="menu-xp">0</span> | 💰: <span id="menu-coins">0</span>
         </div>
         
         <div id="menu-buttons" class="mission-grid">
             </div>
         
-        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:5px; width:100%; max-width:800px;">
-            <button class="btn menu-wide-btn" style="width:48%; background:#003300; border-color:#00FF00;" onclick="startTraining()" id="btn-tr">🎯 ТРЕНИРОВКА</button>
-            <button class="btn menu-wide-btn" style="width:48%; border-color:#00FFFF;" onclick="playCustomMap()" id="btn-cust">🗺️ СВОЯ КАРТА</button>
-            <button class="btn menu-wide-btn" style="width:48%; border-color:#00FF00;" onclick="openEditor()" id="btn-edit">🛠️ РЕДАКТОР</button>
-            <button class="btn menu-wide-btn" style="width:48%;" onclick="openSettings()" id="btn-set">⚙️ НАСТРОЙКИ</button>
-        </div>
-
-        <button class="btn menu-wide-btn shop-btn" onclick="openShop()" id="btn-shop">🛒 МАГАЗИН</button>
-        <button id="end-game-btn" class="btn menu-wide-btn" onclick="showMainMenu()" style="display:none; background: #FF3333; margin-top: 20px;">В МЕНЮ</button>
+        <button class="btn multi-btn" style="border-color:#FF00FF;" onclick="openMultiplayer()" id="btn-onl">🌐 ОНЛАЙН</button>
+        <button class="btn menu-wide-btn" style="border-color:#00FFFF;" onclick="playCustomMap()" id="btn-cust">🗺️ CUSTOM MAP</button>
+        <button class="btn shop-btn" onclick="openShop()" id="btn-shop">🛒 МАГАЗИН</button>
+        <button class="btn editor-btn" onclick="openEditor()" style="border-color:#00FF00;" id="btn-edit">🛠️ РЕДАКТОР</button>
+        <button class="btn menu-wide-btn" onclick="openSettings()" id="btn-set">⚙️ НАЛАШТУВАННЯ</button>
+        <button id="end-game-btn" class="btn menu-wide-btn" onclick="showMainMenu()" style="display:none; background: #FF3333; margin-top: 20px;">MENU</button>
     </div>
 
     <div id="game-ui">
-        <button id="exit-mission-btn" onclick="showMainMenu()" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); background: rgba(255, 0, 0, 0.2); border: 1px solid red; color: red; padding: 5px 20px; font-weight: bold; pointer-events: auto;">MENU</button>
+        <button id="exit-mission-btn" onclick="showMainMenu()">EXIT</button>
         <div id="top-bar">
             <div>
-                <div id="mission-text">MISSION</div>
+                <div id="mission-text" style="font-size: 18px; font-weight: bold; color: #77DDFF; text-shadow: 1px 1px 0 #000;">...</div>
                 <div class="bar-container" id="health-bar"><div id="health-fill"></div></div>
-                <div class="bar-container" style="height:6px; margin-top:5px; background:#111; border:none;"><div id="xp-fill"></div></div>
-                <div class="stat-box" id="weapon-info" style="margin-top: 5px; font-size:12px;">PISTOL</div>
+                <div class="bar-container" style="height: 10px; border-color: #0077FF; margin-top: 5px;"><div id="xp-fill"></div></div>
+                <div class="stat-box" id="weapon-info" style="margin-top: 5px; color: #aaa;">Weapon</div>
             </div>
             <div style="text-align: right;">
-                <div class="stat-box" id="stats">0</div>
-                <div class="stat-box" id="grenade-counter" style="color:orange;">💣 3</div>
-                <div class="stat-box" id="coin-counter" style="color:yellow;">$ 0</div>
+                <div class="stat-box" id="stats">0.0</div>
+                <div class="stat-box" id="grenade-counter" style="color: #FFA500; font-weight: bold;">💣: 3</div>
+                <div class="stat-box" id="coin-counter" style="color: #FFFF00; font-weight: bold;">💰: 0</div>
             </div>
         </div>
     </div>
 
     <div id="shop-screen" class="overlay" style="z-index: 25; display: none; overflow-y: auto;">
-        <h1 id="lbl-shop-title">МАГАЗИН</h1>
+        <h1 id="lbl-shop">МАГАЗИН</h1>
         <div style="color: yellow; margin-bottom: 5px;">💰: <span id="shop-coins">0</span></div>
         <div class="shop-container">
             <div class="shop-column">
-                <h3>ВИД</h3>
-                <canvas id="previewCanvas" width="150" height="150" style="background:#222; border-radius:50%; margin-bottom:5px;"></canvas>
+                <h3 id="lbl-look">ВИГЛЯД</h3>
+                <canvas id="previewCanvas" width="150" height="150" style="border: 2px solid #555; background: #222; margin-bottom: 5px;"></canvas>
                 <input type="color" id="colorPicker" value="#0077FF" onchange="updatePreview()">
             </div>
-            <div class="shop-column"><h3>ВЕЩИ</h3><div id="accessories-list"></div></div>
-            <div class="shop-column"><h3>ОРУЖИЕ</h3><div id="weapons-list"></div></div>
+            <div class="shop-column"><h3 id="lbl-acc">АКСЕСУАРИ</h3><div id="accessories-list"></div></div>
+            <div class="shop-column"><h3 id="lbl-wpn">ЗБРОЯ</h3><div id="weapons-list"></div></div>
             <div class="shop-column">
-                <h3>ИНВЕНТАРЬ</h3><div id="inventory-list">Пусто</div>
-                <div class="promo-container">
-                    <input type="text" id="promo-input" placeholder="CODE" style="width:100px; padding:5px; color:black;">
-                    <button class="btn" onclick="redeemCode()" style="display:inline-block; padding:5px;">OK</button>
+                <h3 id="lbl-inv">ІНВЕНТАР</h3><div id="inventory-list" style="font-size:12px; color:#aaa;"></div>
+                <div style="margin-top: 20px; border-top: 2px dashed #555; padding: 10px;">
+                    <input type="text" id="promo-input" placeholder="CODE" style="background:#111; border:1px solid #0077FF; color:white; padding:5px; width:100px;">
+                    <button class="btn" style="display:inline-block; padding:5px;" onclick="redeemCode()">OK</button>
                 </div>
             </div>
         </div>
-        <button class="btn menu-wide-btn" onclick="closeShop()" style="position:fixed; bottom:10px; border-color:red;">ВЫХОД</button>
-    </div>
-    
-    <div id="editor-ui" style="display:none; position:absolute; bottom:10px; left:10px; z-index:50; display:flex; gap:5px;">
-        <div class="btn" style="width:40px; height:40px;" onclick="setEditorTool(1)">⬜</div>
-        <div class="btn" style="width:40px; height:40px;" onclick="setEditorTool(2)">👾</div>
-        <div class="btn" style="width:40px; height:40px; border-color:red;" onclick="setEditorTool(0)">❌</div>
-        <div class="btn" onclick="saveCustomMap()">SAVE</div>
-        <div class="btn" onclick="exitEditor()" style="border-color:red;">EXIT</div>
+        <button class="btn menu-wide-btn" onclick="closeShop()" style="margin-top: 10px; border-color:red;" id="btn-shop-close">EXIT</button>
     </div>
 
     <div id="mobile-controls">
         <div id="stick-left" class="joystick-zone"><div class="joystick-knob" id="knob-left"></div></div>
-        <div id="stick-right" class="joystick-zone" style="right:20px;"><div class="joystick-knob" id="knob-right" style="background:rgba(255,50,50,0.5);"></div></div>
+        <div id="stick-right" class="joystick-zone" style="right: 20px;"><div class="joystick-knob" id="knob-right" style="background: rgba(255, 51, 51, 0.5);"></div></div>
         <div id="mobile-grenade-btn" onclick="throwGrenadeMobile()">💣</div>
         <div id="weapon-bar"></div>
     </div>
@@ -197,57 +165,71 @@
     <canvas id="gameCanvas"></canvas>
 
     <script>
-        // --- TRANSLATION DATA ---
+        // --- TEXT DATA (TRANSLATIONS) ---
         const LANG = {
-            ru: {
-                menu: "КАМПАНИЯ", tr: "🎯 ТРЕНИРОВКА", cust: "🗺️ СВОЯ КАРТА", edit: "🛠️ РЕДАКТОР", set: "⚙️ НАСТРОЙКИ", shop: "🛒 МАГАЗИН",
+            uk: {
+                menu: "МЕНЮ МІСІЙ", choose: "Оберіть керування", pc: "💻 ПК", mob: "📱 Мобільний",
+                onl: "🌐 ОНЛАЙН", cust: "🗺️ СВОЯ КАРТА", shop: "🛒 МАГАЗИН", edit: "🛠️ РЕДАКТОР", set: "⚙️ НАЛАШТУВАННЯ",
+                shT: "МАГАЗИН", look: "ВИГЛЯД", acc: "АКСЕСУАРИ", wpn: "ЗБРОЯ", inv: "ІНВЕНТАР", ok: "ОК", close: "ЗАКРИТИ",
+                lvlup: "НОВИЙ РІВЕНЬ!", stTime: "Час", stKill: "Вбито", stBomb: "Бомби", stZone: "Зона",
                 missions: [
-                    {n: "Первая Кровь", d: "Выжить 20 сек"}, {n: "Зачистка", d: "Убить 5 врагов"}, {n: "Логово Зверя", d: "Убить Босса"},
-                    {n: "Нашествие", d: "Выжить 40 сек"}, {n: "Мясорубка", d: "Убить 50 врагов"}, {n: "Ветеран", d: "Хардкор (60с)"},
-                    {n: "Сапер", d: "Собрать 15 бомб"}, {n: "Апокалипсис", d: "Ад (50с)"}, {n: "Удержание", d: "В кругу 15с"},
-                    {n: "Ночной Рейд", d: "Тьма (Убить 10)"}, {n: "Снайперы", d: "Убить 10 снайперов"}, {n: "Тренировка", d: "Полигон"},
-                    {n: "Артиллерия", d: "Убить 30 (Базука)"}, {n: "Оборона", d: "Танки (60с)"}, {n: "Два Босса", d: "Убить Двоих"},
-                    {n: "Танковый Раш", d: "Убить 15 танков"}, {n: "Спидран", d: "Быстрые (45с)"}, {n: "Boss Rush", d: "Убить 3 Боссов"},
-                    {n: "Бесконечность", d: "Убить 100"}, {n: "Финал", d: "Выжить 120 сек"}
+                    {n:"Окоп", d:"Вижити 20с"}, {n:"Зачистка", d:"Вбити 5 ворогів"}, {n:"Лігво", d:"Вбити Боса"},
+                    {n:"Орда", d:"Вижити 40с"}, {n:"М'ясорубка", d:"Вбити 50 ворогів"}, {n:"Ветеран", d:"Хардкор (60с)"},
+                    {n:"Сапер", d:"Зібрати 15 бомб"}, {n:"Пекло", d:"Вижити 50с"}, {n:"Зона", d:"В колі 15с"},
+                    {n:"Ніч", d:"Вбити 10 (Темрява)"}, {n:"Снайпери", d:"Вбити 10 снайперів"}, {n:"Тренування", d:"Полігон"},
+                    {n:"Базука", d:"Вбити 30"}, {n:"Оборона", d:"Танки (60с)"}, {n:"Два Боса", d:"Вбити Двох"},
+                    {n:"Танки", d:"Вбити 15 танків"}, {n:"Спідран", d:"Швидкі (45с)"}, {n:"Boss Rush", d:"Вбити 3 Босів"},
+                    {n:"100 Кілів", d:"Вбити 100"}, {n:"Фінал", d:"Вижити 120с"}
                 ],
-                stTime: "Время", stKill: "Убито", stZone: "Зона", stBomb: "Бомбы"
+                items: { none: "Немає", santa_hat: "Шапка", helmet: "Каска", vest: "Жилет", nvg: "ПНБ", crown: "Корона", pistol: "Піст", rifle: "Авт", shotgun: "Дроб", minigun: "Кулем", bazooka: "Базука" }
             },
-            ua: {
-                menu: "КАМПАНІЯ", tr: "🎯 ТРЕНУВАННЯ", cust: "🗺️ СВОЯ КАРТА", edit: "🛠️ РЕДАКТОР", set: "⚙️ НАЛАШТУВАННЯ", shop: "🛒 МАГАЗИН",
+            ru: {
+                menu: "МЕНЮ МИССИЙ", choose: "Выберите управление", pc: "💻 ПК", mob: "📱 Мобильный",
+                onl: "🌐 ОНЛАЙН", cust: "🗺️ СВОЯ КАРТА", shop: "🛒 МАГАЗИН", edit: "🛠️ РЕДАКТОР", set: "⚙️ НАСТРОЙКИ",
+                shT: "МАГАЗИН", look: "ВИД", acc: "ВЕЩИ", wpn: "ОРУЖИЕ", inv: "ИНВЕНТАРЬ", ok: "ОК", close: "ЗАКРЫТЬ",
+                lvlup: "НОВЫЙ УРОВЕНЬ!", stTime: "Время", stKill: "Убито", stBomb: "Бомбы", stZone: "Зона",
                 missions: [
-                    {n: "Перша Кров", d: "Вижити 20 сек"}, {n: "Зачистка", d: "Вбити 5 ворогів"}, {n: "Лігво Звіра", d: "Вбити Боса"},
-                    {n: "Навала", d: "Вижити 40 сек"}, {n: "М'ясорубка", d: "Вбити 50 ворогів"}, {n: "Ветеран", d: "Хардкор (60с)"},
-                    {n: "Сапер", d: "Зібрати 15 бомб"}, {n: "Апокаліпсис", d: "Пекло (50с)"}, {n: "Утримання", d: "В колі 15с"},
-                    {n: "Нічний Рейд", d: "Темрява (Вбити 10)"}, {n: "Снайпери", d: "Вбити 10 снайперів"}, {n: "Тренування", d: "Полігон"},
-                    {n: "Артилерія", d: "Вбити 30 (Базука)"}, {n: "Оборона", d: "Танки (60с)"}, {n: "Два Боса", d: "Вбити Двох"},
-                    {n: "Танковий Раш", d: "Вбити 15 танків"}, {n: "Спідран", d: "Швидкі (45с)"}, {n: "Boss Rush", d: "Вбити 3 Босів"},
-                    {n: "Нескінченність", d: "Вбити 100"}, {n: "Фінал", d: "Вижити 120 сек"}
+                    {n:"Окоп", d:"Выжить 20с"}, {n:"Зачистка", d:"Убить 5 врагов"}, {n:"Логово", d:"Убить Босса"},
+                    {n:"Орда", d:"Выжить 40с"}, {n:"Мясорубка", d:"Убить 50 врагов"}, {n:"Ветеран", d:"Хардкор (60с)"},
+                    {n:"Сапер", d:"Собрать 15 бомб"}, {n:"Ад", d:"Выжить 50с"}, {n:"Зона", d:"В кругу 15с"},
+                    {n:"Ночь", d:"Убить 10 (Тьма)"}, {n:"Снайперы", d:"Убить 10 снайперов"}, {n:"Тренировка", d:"Полигон"},
+                    {n:"Базука", d:"Убить 30"}, {n:"Оборона", d:"Танки (60с)"}, {n:"Два Босса", d:"Убить Двоих"},
+                    {n:"Танки", d:"Убить 15 танков"}, {n:"Спидран", d:"Быстрые (45с)"}, {n:"Boss Rush", d:"Убить 3 Боссов"},
+                    {n:"100 Киллов", d:"Убить 100"}, {n:"Финал", d:"Выжить 120с"}
                 ],
-                stTime: "Час", stKill: "Вбито", stZone: "Зона", stBomb: "Бомби"
+                items: { none: "Нет", santa_hat: "Шапка", helmet: "Каска", vest: "Жилет", nvg: "ПНВ", crown: "Корона", pistol: "Пист", rifle: "Авт", shotgun: "Дроб", minigun: "Пулем", bazooka: "Базука" }
             },
             en: {
-                menu: "CAMPAIGN", tr: "🎯 TRAINING", cust: "🗺️ CUSTOM MAP", edit: "🛠️ EDITOR", set: "⚙️ SETTINGS", shop: "🛒 SHOP",
+                menu: "MISSIONS", choose: "Choose Control", pc: "💻 PC", mob: "📱 Mobile",
+                onl: "🌐 ONLINE", cust: "🗺️ CUSTOM MAP", shop: "🛒 SHOP", edit: "🛠️ EDITOR", set: "⚙️ SETTINGS",
+                shT: "SHOP", look: "LOOK", acc: "GEAR", wpn: "WEAPONS", inv: "INVENTORY", ok: "OK", close: "CLOSE",
+                lvlup: "LEVEL UP!", stTime: "Time", stKill: "Kills", stBomb: "Bombs", stZone: "Zone",
                 missions: [
-                    {n: "First Blood", d: "Survive 20s"}, {n: "Clean Up", d: "Kill 5 enemies"}, {n: "Beast Lair", d: "Kill Boss"},
-                    {n: "The Horde", d: "Survive 40s"}, {n: "Meat Grinder", d: "Kill 50 enemies"}, {n: "Veteran", d: "Hardcore (60s)"},
-                    {n: "Sapper", d: "Collect 15 bombs"}, {n: "Apocalypse", d: "Hell (50s)"}, {n: "Hold Point", d: "Zone 15s"},
-                    {n: "Night Raid", d: "Dark (Kill 10)"}, {n: "Snipers", d: "Kill 10 snipers"}, {n: "Training", d: "Range"},
-                    {n: "Artillery", d: "Kill 30 (Bazooka)"}, {n: "Defense", d: "Tanks (60s)"}, {n: "Two Bosses", d: "Kill Two"},
-                    {n: "Tank Rush", d: "Kill 15 Tanks"}, {n: "Speedrun", d: "Fast (45s)"}, {n: "Boss Rush", d: "Kill 3 Bosses"},
-                    {n: "Infinity", d: "Kill 100"}, {n: "Final", d: "Survive 120s"}
+                    {n:"Trench", d:"Survive 20s"}, {n:"Cleanup", d:"Kill 5 enemies"}, {n:"Lair", d:"Kill Boss"},
+                    {n:"Horde", d:"Survive 40s"}, {n:"Grinder", d:"Kill 50 enemies"}, {n:"Veteran", d:"Hardcore (60s)"},
+                    {n:"Sapper", d:"Collect 15 bombs"}, {n:"Hell", d:"Survive 50s"}, {n:"Zone", d:"Hold 15s"},
+                    {n:"Night", d:"Kill 10 (Dark)"}, {n:"Snipers", d:"Kill 10 Snipers"}, {n:"Training", d:"Range"},
+                    {n:"Bazooka", d:"Kill 30"}, {n:"Defense", d:"Tanks (60s)"}, {n:"Two Bosses", d:"Kill Two"},
+                    {n:"Tanks", d:"Kill 15 Tanks"}, {n:"Speedrun", d:"Fast (45s)"}, {n:"Boss Rush", d:"Kill 3 Bosses"},
+                    {n:"100 Kills", d:"Kill 100"}, {n:"Final", d:"Survive 120s"}
                 ],
-                stTime: "Time", stKill: "Kills", stZone: "Zone", stBomb: "Bombs"
+                items: { none: "None", santa_hat: "Hat", helmet: "Helmet", vest: "Vest", nvg: "NVG", crown: "Crown", pistol: "Pistol", rifle: "Rifle", shotgun: "Shotgun", minigun: "Minigun", bazooka: "Bazooka" }
             }
         };
 
-        // --- CORE VARS ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let currentLang = 'ru'; 
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        let curLang = 'ru';
         let controlMode = 'PC';
         let gameState = 'PLATFORM_SELECT';
         let currentMissionId = 0;
         let megaEquipMode = false;
+
+        let playerStats = { coins: 0, color: '#0077FF', xp: 0, level: 1, nextLevelXp: 100, unlockedWeapons: ['pistol'], unlockedOutfits: ['none'], currentOutfit: 'none', redeemedCodes: [], godMode: false, inventory: [], skills: [], unlockedPets: ['none'], currentPet: 'none' };
+        let customMap = { walls: [], spawns: [] };
         
         let gameTime=0, enemiesKilled=0, grenadesKilled=0, bossSpawned=false, zoneTimer=0;
         let captureZone = { x: 0, y: 0, radius: 100 };
@@ -256,60 +238,48 @@
         let keys={}, mouse={x:0,y:0,down:false};
         let joystickLeft={x:0,y:0,active:false,id:null}, joystickRight={x:0,y:0,active:false,id:null};
 
-        let playerStats = { coins: 0, color: '#0077FF', xp: 0, level: 1, nextLevelXp: 100, unlockedWeapons: ['pistol'], unlockedOutfits: ['none'], currentOutfit: 'none', redeemedCodes: [], godMode: false, inventory: [], skills: [], unlockedPets: ['none'], currentPet: 'none' };
-        let customMap = { walls: [], spawns: [] };
-        
-        const shopData = {
-            outfits: ['none','santa_hat','helmet','vest','nvg','full_armor','chain','crown'],
-            weapons: ['pistol','rifle','shotgun','sniper','minigun','snowball','bazooka','laser','crossbow','plasma'],
-            pets: ['drone','slime','ufo','wisp','turret']
-        };
-
-        // --- INIT ---
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize); resize();
+        // SNOW
         for(let i=0; i<60; i++) snowflakes.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: Math.random()*2+0.5, s: Math.random()*1+0.2 });
-        loadGame();
-        renderMenuButtons();
 
-        // --- MENU SYSTEM ---
-        function setLang(l) { currentLang = l; renderMenuButtons(); saveGame(); }
-        function openSettings() { document.getElementById('settings-screen').style.display='flex'; }
-        function closeSettings() { document.getElementById('settings-screen').style.display='none'; }
-        function openShop() { document.getElementById('shop-screen').style.display='flex'; renderShop(); }
-        function closeShop() { document.getElementById('shop-screen').style.display='none'; }
-        function openEditor() { gameState='EDITOR'; document.getElementById('menu-overlay').style.display='none'; document.getElementById('editor-ui').style.display='flex'; }
-        function exitEditor() { gameState='MENU'; document.getElementById('menu-overlay').style.display='flex'; document.getElementById('editor-ui').style.display='none'; }
-        let editorTool=1; function setEditorTool(t){editorTool=t;}
+        // --- LANGUAGE SYSTEM ---
+        function setLang(l) { curLang = l; applyLang(); saveGame(); }
+        function applyLang() {
+            let t = LANG[curLang];
+            document.getElementById('lbl-choose').innerText = t.choose;
+            document.getElementById('btn-pc').innerText = t.pc; document.getElementById('btn-mob').innerText = t.mob;
+            
+            document.getElementById('menu-title').innerText = t.menu;
+            document.getElementById('btn-onl').innerText = t.onl; document.getElementById('btn-cust').innerText = t.cust;
+            document.getElementById('btn-shop').innerText = t.shop; document.getElementById('btn-edit').innerText = t.edit;
+            document.getElementById('btn-set').innerText = t.set;
+            
+            document.getElementById('lbl-shop').innerText = t.shT; document.getElementById('lbl-look').innerText = t.look;
+            document.getElementById('lbl-acc').innerText = t.acc; document.getElementById('lbl-wpn').innerText = t.wpn;
+            document.getElementById('lbl-inv').innerText = t.inv; document.getElementById('btn-shop-close').innerText = t.close;
+            document.getElementById('btn-set-ok').innerText = t.ok;
+            document.getElementById('notif-lvl').innerText = t.lvlup;
+            document.getElementById('exit-mission-btn').innerText = t.close;
+
+            renderMenuButtons();
+            renderShop();
+        }
 
         function renderMenuButtons() {
-            const t = LANG[currentLang];
-            document.getElementById('menu-title').innerText = t.menu;
-            document.getElementById('btn-tr').innerText = t.tr;
-            document.getElementById('btn-cust').innerText = t.cust;
-            document.getElementById('btn-edit').innerText = t.edit;
-            document.getElementById('btn-set').innerText = t.set;
-            document.getElementById('btn-shop').innerText = t.shop;
-
-            const grid = document.getElementById('menu-buttons');
-            grid.innerHTML = '';
-            
-            // Mission Logic Config
+            const grid = document.getElementById('menu-buttons'); grid.innerHTML = '';
+            const t = LANG[curLang];
             const configs = [
                 {id:1, type:'time', val:20}, {id:2, type:'kill', val:5}, {id:3, type:'boss'},
                 {id:4, type:'time', val:40}, {id:5, type:'kill', val:50}, {id:6, type:'time', val:60, hard:true},
                 {id:7, type:'coll', val:15}, {id:8, type:'time', val:50, hard:true}, {id:9, type:'zone', val:15},
-                {id:10, type:'kill', val:10, dark:true}, {id:11, type:'kill', val:10, snip:true}, {id:12}, // 12 is skip/custom
+                {id:10, type:'kill', val:10, dark:true}, {id:11, type:'kill', val:10, snip:true}, {id:12}, 
                 {id:13, type:'kill', val:30, wpn:'bazooka'}, {id:14, type:'time', val:60, hard:true, tank:true}, 
                 {id:15, type:'boss', double:true}, {id:16, type:'kill', val:15, tank:true}, {id:17, type:'time', val:45, speed:true},
                 {id:18, type:'boss', rush:true}, {id:19, type:'kill', val:100}, {id:20, type:'time', val:120, hard:true}
             ];
 
             configs.forEach((cfg, i) => {
-                if(cfg.id === 12) return; // Skip training in list
-                let txt = t.missions[i];
-                if(i >= t.missions.length) txt = {n:`Mission ${cfg.id}`, d:"..."}; // Fallback
-
+                if(i===11) return; // Skip training
+                let txt = t.missions[i] || {n:"M"+cfg.id, d:"..."};
                 let btn = document.createElement('button');
                 btn.className = 'btn';
                 if(cfg.type==='boss') btn.classList.add('boss-btn');
@@ -322,19 +292,19 @@
             });
         }
 
-        // --- GAME LOOP ---
-        let mCfg = {}; 
+        // --- GAMEPLAY ---
+        let mCfg = {};
         function startMission(id, config) {
             currentMissionId = id; mCfg = config || {};
+            if(id === 'TRAINING') mCfg = { id: 12 }; 
+            
             gameState='PLAYING'; 
             player = new Player(canvas.width/2, canvas.height/2); 
             enemies=[]; bullets=[]; particles=[]; obstacles=[]; drops=[]; decorations=[]; 
             gameTime=0; enemiesKilled=0; grenadesKilled=0; bossSpawned=false; zoneTimer=0; 
             
-            // Generate Map
-            if(id === 'CUSTOM') {
-                customMap.walls.forEach(w => obstacles.push(new Rect(w.x, w.y, 50)));
-            } else {
+            if(id === 'CUSTOM') { customMap.walls.forEach(w => obstacles.push(new Rect(w.x, w.y, 50))); } 
+            else {
                 for(let i=0; i<30; i++) decorations.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, size:Math.random()*20+10});
                 if(id !== 'TRAINING') {
                      for (let i=0; i<12; i++) { 
@@ -344,23 +314,16 @@
                     }
                 }
             }
-
             if(mCfg.type === 'zone') { captureZone.x=canvas.width/2; captureZone.y=canvas.height/2; }
 
-            // Pets / Mega Mode
             activePets = []; 
-            if(megaEquipMode) {
-                ['drone', 'slime', 'ufo', 'wisp', 'turret'].forEach((t, i) => activePets.push(new Pet(t, i)));
-            } else if(playerStats.currentPet !== 'none') {
-                activePets.push(new Pet(playerStats.currentPet));
-            }
+            if(megaEquipMode) { ['drone', 'slime', 'ufo', 'wisp', 'turret'].forEach((t, i) => activePets.push(new Pet(t, i))); } 
+            else if(playerStats.currentPet !== 'none') { activePets.push(new Pet(playerStats.currentPet)); }
 
             document.getElementById('menu-overlay').style.display='none'; 
             document.getElementById('game-ui').style.display='block';
-            let mIdx = id - 1; if(id==='TRAINING') mIdx=11;
-            let mName = (typeof id === 'number' || id==='TRAINING') ? LANG[currentLang].missions[mIdx]?.n : "CUSTOM";
-            document.getElementById('mission-text').innerText = mName || "MISSION";
-            
+            let mName = (typeof id === 'number' || id==='TRAINING') ? LANG[curLang].missions[id==='TRAINING'?11:(id-1)]?.n : "CUSTOM";
+            document.getElementById('mission-text').innerText = mName;
             updateUI();
         }
 
@@ -368,33 +331,26 @@
             if(gameState !== 'PLAYING') return;
             gameTime += 1/60;
             
-            // Spawn Logic
             if(currentMissionId !== 'TRAINING' && currentMissionId !== 'CUSTOM') {
-                let rate = (mCfg.hard) ? 60 : 120;
-                if(mCfg.speed) rate = 50;
+                let rate = (mCfg.hard) ? 60 : 120; if(mCfg.speed) rate = 50;
                 
-                // Boss Spawn
                 if(mCfg.type==='boss' && !bossSpawned && gameTime>2) {
-                    if(mCfg.double) { spawnEnemy('boss'); spawnEnemy('boss'); }
-                    else spawnEnemy('boss');
+                    if(mCfg.double) { spawnEnemy('boss'); spawnEnemy('boss'); } else spawnEnemy('boss');
                     bossSpawned=true;
                 }
-                if(mCfg.rush && !enemies.some(e=>e.type==='boss') && enemiesKilled < 3 && gameTime>1) {
-                    spawnEnemy('boss'); bossSpawned=true;
-                }
+                if(mCfg.rush && !enemies.some(e=>e.type==='boss') && enemiesKilled < 3 && gameTime>1) { spawnEnemy('boss'); bossSpawned=true; }
 
                 if(Math.floor(gameTime*60) % rate === 0) {
                     let t = 'standard';
-                    if(mCfg.tank) t = 'tank';
-                    if(mCfg.snip) t = 'sniper';
+                    if(mCfg.tank) t = 'tank'; if(mCfg.snip) t = 'sniper';
                     spawnEnemy(t);
                 }
             }
 
-            // Win Logic
+            // WIN CHECK (FIXED)
             let win = false;
             if(mCfg.type === 'time' && gameTime >= mCfg.val) win = true;
-            if(mCfg.type === 'kill' && enemiesKilled >= mCfg.val) win = true; // BUG FIX: Fixed condition
+            if(mCfg.type === 'kill' && enemiesKilled >= mCfg.val) win = true; // FIX APPLIED HERE
             if(mCfg.type === 'coll' && grenadesKilled >= mCfg.val) win = true;
             if(mCfg.type === 'zone' && zoneTimer >= mCfg.val) win = true;
             if(mCfg.type === 'boss' && bossSpawned) {
@@ -403,15 +359,13 @@
             }
             if(win) gameOver(true);
 
-            // Stats Update
-            let l = LANG[currentLang];
-            let sTxt = "";
+            let t = LANG[curLang]; let sTxt = "";
             if(mCfg.type==='zone') { 
                 if(Math.hypot(player.x-captureZone.x, player.y-captureZone.y)<captureZone.radius) zoneTimer+=1/60; 
-                sTxt = `${l.stZone}: ${zoneTimer.toFixed(1)}/${mCfg.val}`;
-            } else if (mCfg.type==='kill') sTxt = `${l.stKill}: ${enemiesKilled}/${mCfg.val}`;
-            else if (mCfg.type==='coll') sTxt = `${l.stBomb}: ${grenadesKilled}/${mCfg.val}`;
-            else sTxt = `${l.stTime}: ${gameTime.toFixed(0)}`;
+                sTxt = `${t.stZone}: ${zoneTimer.toFixed(1)}/${mCfg.val}`;
+            } else if (mCfg.type==='kill') sTxt = `${t.stKill}: ${enemiesKilled}/${mCfg.val}`;
+            else if (mCfg.type==='coll') sTxt = `${t.stBomb}: ${grenadesKilled}/${mCfg.val}`;
+            else sTxt = `${t.stTime}: ${gameTime.toFixed(0)}`;
             document.getElementById('stats').innerText = sTxt;
 
             player.update();
@@ -521,44 +475,36 @@
         class Pet { constructor(t,i){this.type=t;this.x=player.x;this.y=player.y;this.off=i*10;} update(){this.x+=(player.x-this.x)*0.05; this.y+=(player.y-this.y)*0.05;} draw(){ctx.fillStyle='cyan';ctx.beginPath();ctx.arc(this.x+this.off,this.y-20,5,0,Math.PI*2);ctx.fill();} }
         class DropItem { constructor(x,y,t,at){this.x=x;this.y=y;this.type=t;this.artifactType=at||'rusty_gear';} draw(){ctx.fillStyle=this.type==='coin'?'gold':'lime';ctx.beginPath();ctx.arc(this.x,this.y,10,0,Math.PI*2);ctx.fill();} }
 
-        // --- RENDER SHOP ---
         function renderShop() {
-            const l = document.getElementById('accessories-list'); l.innerHTML='';
-            shopData.outfits.forEach(i=>{ let d=document.createElement('div'); d.className='shop-item'; d.innerText=i; l.appendChild(d); });
+            const acc = document.getElementById('accessories-list'); acc.innerHTML='';
+            ['none','santa_hat','helmet','vest','nvg','crown'].forEach(i=>{ let d=document.createElement('div'); d.className='shop-item'; d.innerHTML=`<span>${LANG[curLang].items[i]}</span>`; acc.appendChild(d); });
         }
         function createParticles(x,y,c){for(let i=0;i<5;i++)particles.push(new Particle(x,y,c));}
         function addXp(amt){playerStats.xp+=amt; if(playerStats.xp>=playerStats.nextLevelXp){playerStats.level++; playerStats.xp=0; player.hp=player.maxHp; document.getElementById('levelup-notify').style.opacity=1; setTimeout(()=>document.getElementById('levelup-notify').style.opacity=0,2000);} updateUI();}
         function gameOver(win){ gameState='GAMEOVER'; alert(win?"VICTORY":"DEFEAT"); showMainMenu(); }
         function showMainMenu(){ gameState='MENU'; document.getElementById('menu-overlay').style.display='flex'; document.getElementById('game-ui').style.display='none'; }
-        function startTraining() { startMission('TRAINING', {}); }
         function playCustomMap() { if(customMap.spawns.length===0)alert("No spawns!"); else startMission('CUSTOM', {}); }
-        function loadGame(){ try{let d=JSON.parse(localStorage.getItem('winterOps_v15_fix')); if(d) { playerStats={...playerStats,...d.stats}; if(d.lang) currentLang = d.lang; if(d.map) customMap=d.map;} }catch(e){} }
-        function saveGame(){ localStorage.setItem('winterOps_v15_fix', JSON.stringify({stats: playerStats, lang: currentLang, map: customMap})); }
-        function updateUI(){ if(gameState==='PLAYING'){ document.getElementById('health-fill').style.width=(player.hp/player.maxHp)*100+'%'; document.getElementById('xp-fill').style.width=(playerStats.xp/playerStats.nextLevelXp)*100+'%'; document.getElementById('coin-counter').innerText='$ '+playerStats.coins; } }
+        function loadGame(){ try{let d=JSON.parse(localStorage.getItem('tacticalShooter_fixed')); if(d) { playerStats={...playerStats,...d.stats}; if(d.lang) curLang = d.lang; if(d.map) customMap=d.map;} applyLang(); }catch(e){applyLang();} }
+        function saveGame(){ localStorage.setItem('tacticalShooter_fixed', JSON.stringify({stats: playerStats, lang: curLang, map: customMap})); }
+        function updateUI(){ if(gameState==='PLAYING'){ document.getElementById('health-fill').style.width=(player.hp/player.maxHp)*100+'%'; document.getElementById('xp-fill').style.width=(playerStats.xp/playerStats.nextLevelXp)*100+'%'; document.getElementById('coin-counter').innerText='💰 '+playerStats.coins; } }
         function redeemCode() { let c = document.getElementById('promo-input').value.trim().toUpperCase(); if(c === '2KFNWKC') { megaEquipMode = true; alert("MEGA MODE!"); return; } }
         function selectPlatform(m) { controlMode = m; document.getElementById('platform-screen').style.display='none'; showMainMenu(); }
         
-        // --- EDITOR & INPUTS ---
-        function saveCustomMap() { saveGame(); alert("Saved!"); }
-        canvas.addEventListener('mousedown', (e)=>{
-            if(gameState==='EDITOR'){
-                 let gx=Math.floor(e.clientX/50)*50, gy=Math.floor(e.clientY/50)*50;
-                 customMap.walls=customMap.walls.filter(w=>w.x!==gx||w.y!==gy); customMap.spawns=customMap.spawns.filter(s=>s.x!==gx||s.y!==gy);
-                 if(editorTool===1)customMap.walls.push({x:gx,y:gy}); if(editorTool===2)customMap.spawns.push({x:gx,y:gy});
-            }
-        });
-
+        function openSettings() { document.getElementById('settings-screen').style.display='flex'; }
+        function closeSettings() { document.getElementById('settings-screen').style.display='none'; }
+        function openShop() { document.getElementById('shop-screen').style.display='flex'; renderShop(); }
+        function closeShop() { document.getElementById('shop-screen').style.display='none'; }
+        function openEditor() { gameState='EDITOR'; document.getElementById('menu-overlay').style.display='none'; }
+        
         window.addEventListener('keydown',e=>keys[e.code]=true); window.addEventListener('keyup',e=>keys[e.code]=false);
         window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
         window.addEventListener('mousedown',()=>mouse.down=true); window.addEventListener('mouseup',()=>mouse.down=false);
         
-        // TOUCH
         document.addEventListener('touchstart',e=>{
             if(controlMode!=='MOBILE'||gameState!=='PLAYING')return;
             for(let i=0;i<e.changedTouches.length;i++){
                 let t=e.changedTouches[i];
                 if(t.target.id==='mobile-grenade-btn')continue;
-                let zl=document.querySelector('.joystick-zone').getBoundingClientRect();
                 if(t.clientX<window.innerWidth/2) { joystickLeft.active=true; joystickLeft.id=t.identifier; joystickLeft.sx=t.clientX; joystickLeft.sy=t.clientY; }
                 else { joystickRight.active=true; joystickRight.id=t.identifier; joystickRight.sx=t.clientX; joystickRight.sy=t.clientY; }
             }
@@ -588,9 +534,9 @@
                 if(t.identifier===joystickRight.id){joystickRight.active=false; document.getElementById('knob-right').style.transform='translate(-50%,-50%)';}
              }
         });
-        function throwGrenadeMobile(){if(player)player.shoot();} // Simplification for mobile
+        function throwGrenadeMobile(){if(player)player.shoot();}
 
-        function loop() { requestAnimationFrame(loop); if(gameState==='PLAYING' || gameState==='EDITOR') { if(gameState==='PLAYING')updateGame(); drawGame(); } }
+        function loop() { requestAnimationFrame(loop); if(gameState==='PLAYING') { updateGame(); drawGame(); } }
         loop();
     </script>
 </body>
