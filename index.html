@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: SECRET SANTA UPDATE</title>
+    <title>Tactical Shooter: NO FARM UPDATE</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body {
@@ -472,7 +472,7 @@
         function levelUp() { playerStats.xp -= playerStats.nextLevelXp; playerStats.level++; playerStats.nextLevelXp = getNextLevelXp(playerStats.level); playerStats.coins += 50 * playerStats.level; if (player) player.hp = player.maxHp; showLevelUpEffect(); saveGame(); if (playerStats.xp >= playerStats.nextLevelXp) levelUp(); }
         function showLevelUpEffect() { const el = document.getElementById('levelup-notify'); el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
         function loadGame() {
-            let saved = localStorage.getItem('tacticalShooterData_v8_cheats');
+            let saved = localStorage.getItem('tacticalShooterData_v9_nofarm');
             if (saved) { 
                 let parsed = JSON.parse(saved); 
                 playerStats = { ...playerStats, ...parsed.stats }; 
@@ -487,7 +487,7 @@
         }
         function saveGame() { 
             playerStats.cheatUnlocked = cheatUnlocked;
-            localStorage.setItem('tacticalShooterData_v8_cheats', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
+            localStorage.setItem('tacticalShooterData_v9_nofarm', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
             updateMenuStats(); 
         }
         function updateMenuStats() { document.getElementById('menu-coins').innerText = playerStats.coins; document.getElementById('menu-level').innerText = playerStats.level; document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`; }
@@ -907,7 +907,21 @@
             takeDamage(amount) { 
                 if(this.type.includes('dummy')) return; // Immortal dummies
                 this.hp-=amount; 
-                if(this.hp<=0 && !this.dead) { this.dead=true; createParticles(this.x, this.y, this.color); playerStats.totalKills++; addPlayerXp(this.type==='boss'?100:10); let r=Math.random(); let gC=(currentMissionId===8||currentMissionId===7)?0.4:0.15; if(r<0.3) drops.push(new DropItem(this.x+10, this.y, 'coin')); if(r<gC) drops.push(new DropItem(this.x, this.y, 'grenade')); else if(r<gC+0.3) drops.push(new DropItem(this.x, this.y, 'medkit')); } 
+                if(this.hp<=0 && !this.dead) { 
+                    this.dead=true; 
+                    createParticles(this.x, this.y, this.color); 
+                    playerStats.totalKills++; 
+                    addPlayerXp(this.type==='boss'?100:10); 
+
+                    // DROPS ONLY IF NOT CUSTOM MAP
+                    if(currentMissionId !== 'CUSTOM') {
+                        let r=Math.random(); 
+                        let gC=(currentMissionId===8||currentMissionId===7)?0.4:0.15; 
+                        if(r<0.3) drops.push(new DropItem(this.x+10, this.y, 'coin')); 
+                        if(r<gC) drops.push(new DropItem(this.x, this.y, 'grenade')); 
+                        else if(r<gC+0.3) drops.push(new DropItem(this.x, this.y, 'medkit')); 
+                    }
+                } 
             } 
         }
 
