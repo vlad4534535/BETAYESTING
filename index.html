@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: RESTORED VISUALS + MULTI</title>
+    <title>Tactical Shooter: FINAL BUILD</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         /* --- ORIGINAL VISUAL STYLES (RESTORED) --- */
@@ -19,6 +19,16 @@
             display: none; position: absolute; top: 10px; left: 10px; pointer-events: none;
             width: 100%; box-sizing: border-box; padding-right: 20px; z-index: 5;
         }
+        
+        /* NEW EXIT BUTTON STYLE */
+        #exit-mission-btn {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.6); border: 1px solid #FF3333; color: #FF3333;
+            font-family: inherit; cursor: pointer; pointer-events: auto;
+            padding: 5px 15px; font-weight: bold; font-size: 12px; z-index: 100;
+        }
+        #exit-mission-btn:hover { background: #FF3333; color: white; }
+
         #top-bar { display: flex; justify-content: space-between; align-items: flex-start; }
         .stat-box {
             background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px;
@@ -149,6 +159,9 @@
         body.mobile-mode #promo-btn { padding: 10px 20px; font-size: 16px; }
 
         body.mobile-mode #levelup-notify { font-size: 24px; }
+        
+        /* Mobile Exit Button Size */
+        body.mobile-mode #exit-mission-btn { padding: 10px 30px; font-size: 16px; border-width: 2px; top: 5px; }
     </style>
 </head>
 <body>
@@ -270,6 +283,7 @@
     </div>
 
     <div id="game-ui">
+        <button id="exit-mission-btn" onclick="showMainMenu()">MENU</button>
         <div id="top-bar">
             <div>
                 <div id="mission-text">Ціль...</div>
@@ -692,6 +706,7 @@
                     ctx.fillStyle='red'; ctx.fillRect(-5,-5,10,2);
                 } else if (playerStats.currentOutfit === 'chain') {
                     ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.stroke();
+                    pCtx.fillStyle='#FFD700'; pCtx.font="10px Arial"; pCtx.fillText("$", -3, 5);
                 } else if (playerStats.currentOutfit === 'cap') { 
                     ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); 
                     ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); 
@@ -1020,7 +1035,7 @@
             if(gameState!=='PLAYING')return; 
             for(let i=0;i<e.changedTouches.length;i++){ 
                 let t=e.changedTouches[i]; 
-                if(t.target.id==='mobile-grenade-btn'||t.target.classList.contains('wpn-btn'))continue; 
+                if(t.target.id==='mobile-grenade-btn'||t.target.classList.contains('wpn-btn') || t.target.id==='exit-mission-btn')continue; 
                 let zl=document.getElementById('stick-left').getBoundingClientRect(); 
                 if(t.clientX>=zl.left&&t.clientX<=zl.right&&t.clientY>=zl.top&&t.clientY<=zl.bottom) handleJoystick(t,true); 
                 let zr=document.getElementById('stick-right').getBoundingClientRect(); 
