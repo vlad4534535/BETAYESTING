@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: V13 MASSIVE UPDATE</title>
+    <title>Tactical Shooter: CROWN FIX</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body {
@@ -411,7 +411,7 @@
         let customMap = { walls: [], spawns: [] };
         let hudLayout = {};
 
-        // --- DATA DEFS (EXPANDED) ---
+        // --- DATA DEFS ---
         const artifactTypes = [
             { id: 'rusty_gear', name: 'Іржава шестерня', price: 50, rarity: 0.6 },
             { id: 'ancient_coin', name: 'Стародавня монета', price: 150, rarity: 0.3 },
@@ -514,7 +514,7 @@
         }
         function updateMenuStats() { document.getElementById('menu-coins').innerText = playerStats.coins; document.getElementById('menu-level').innerText = playerStats.level; document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`; }
 
-        // --- SHOP ITEMS (EXPANDED) ---
+        // --- SHOP ITEMS ---
         const shopItems = {
             outfits: [
                 { id: 'none', name: 'Без екіпу', price: 0 }, 
@@ -537,7 +537,6 @@
             pets: [
                 { id: 'none', name: 'Немає', price: 0 },
                 { id: 'drone', name: 'Бойовий Дрон', price: 5000, levelReq: 15 },
-                // Robo-dog removed
                 { id: 'slime', name: 'Токсик Слайм', price: 12000, levelReq: 18 },
                 { id: 'ufo', name: 'Міні НЛО', price: 20000, levelReq: 20 },
                 { id: 'wisp', name: 'Примарний Вогник', price: 25000, levelReq: 22 },
@@ -665,7 +664,7 @@
             else if (playerStats.currentOutfit === 'chain') { pCtx.strokeStyle='#FFD700'; pCtx.lineWidth=2; pCtx.beginPath(); pCtx.arc(0,0,12,0,Math.PI*2); pCtx.stroke(); } 
             else if (playerStats.currentOutfit === 'cap') { pCtx.fillStyle='#C2B280'; pCtx.beginPath(); pCtx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); pCtx.fill(); pCtx.fillStyle='#A09165'; pCtx.fillRect(13,-13,14,26); } 
             else if (playerStats.currentOutfit === 'nvg') { pCtx.fillStyle='#333'; pCtx.fillRect(-14,-12,28,8); pCtx.fillStyle='#0F0'; pCtx.beginPath(); ctx.arc(-6,-8,4,0,Math.PI*2); ctx.arc(6,-8,4,0,Math.PI*2); ctx.fill(); }
-            else if (playerStats.currentOutfit === 'crown') { pCtx.fillStyle='#FFD700'; pCtx.beginPath(); pCtx.moveTo(-12,-10); pCtx.lineTo(-12,-20); pCtx.lineTo(-6,-15); pCtx.lineTo(0,-22); pCtx.lineTo(6,-15); pCtx.lineTo(12,-20); pCtx.lineTo(12,-10); pCtx.close(); pCtx.fill(); pCtx.strokeStyle='#DAA520'; pCtx.stroke(); }
+            else if (playerStats.currentOutfit === 'crown') { pCtx.fillStyle='#FFD700'; pCtx.beginPath(); pCtx.moveTo(-12,-10); pCtx.lineTo(-12,-20); pCtx.lineTo(-6,-15); pCtx.lineTo(0,-22); pCtx.lineTo(6,-15); pCtx.lineTo(12,-20); pCtx.lineTo(12,-10); pCtx.closePath(); pCtx.fill(); pCtx.strokeStyle='#DAA520'; pCtx.stroke(); }
             pCtx.fillStyle='#000'; pCtx.fillRect(10,-3,15,6); pCtx.restore(); 
         }
 
@@ -708,7 +707,7 @@
         function sendNetworkData(data) { connections.forEach(c => c.send(data)); }
         function handleNetworkData(data) { if(data.type === 'move') { remotePlayers[data.id] = data; remotePlayers[data.id].lastUpdate = Date.now(); } else if(data.type === 'shoot') { bullets.push(new Bullet(data.x, data.y, data.vel, false, data.dmg, 4, data.wType)); } else if(data.type === 'spawnEnemy' && !isHost) { enemies.push(new Enemy(data.x, data.y, data.kind)); } }
 
-        // --- PET CLASS (EXPANDED & ROBODOG REMOVED) ---
+        // --- PET CLASS ---
         class Pet {
             constructor(type) {
                 this.type = type; this.x = player.x; this.y = player.y;
@@ -716,17 +715,15 @@
             }
             update() {
                 this.frame++;
-                // Follow Player (Lerp for smooth floating)
                 let tx = player.x + Math.cos(gameTime*2)*35; 
                 let ty = player.y + Math.sin(gameTime*2)*35 - 20; 
-                if(this.type === 'turret') { tx = player.x - Math.cos(player.angle)*40; ty = player.y - Math.sin(player.angle)*40; } // Turret stays behind
+                if(this.type === 'turret') { tx = player.x - Math.cos(player.angle)*40; ty = player.y - Math.sin(player.angle)*40; } 
                 
                 this.x += (tx - this.x) * 0.08;
                 this.y += (ty - this.y) * 0.08;
 
                 if(this.cooldown > 0) this.cooldown--;
 
-                // Attack Logic
                 let nearest = null; let minD = 300;
                 enemies.forEach(e => { let d = Math.hypot(e.x - this.x, e.y - this.y); if(d < minD) { minD = d; nearest = e; } });
 
@@ -747,7 +744,7 @@
                          this.cooldown = 70;
                     } else if (this.type === 'turret') {
                          bullets.push(new Bullet(this.x, this.y, {x:Math.cos(this.angle)*15, y:Math.sin(this.angle)*15}, false, 8, 2, 'normal'));
-                         this.cooldown = 15; // Rapid fire
+                         this.cooldown = 15;
                          screenShake = 1;
                     }
                 }
@@ -781,7 +778,7 @@
             }
         }
 
-        // --- IMPROVED ARTIFACT VISUALS ---
+        // --- ARTIFACT VISUALS ---
         class DropItem { constructor(x, y, type, aType) { this.x = x; this.y = y; this.type = type; this.artifactType=aType; this.size = 20; this.bobOffset = Math.random()*Math.PI*2; } draw() { let bob = Math.sin(gameTime * 5 + this.bobOffset) * 3; let Y = this.y + bob; 
             ctx.save(); ctx.translate(this.x, Y);
             if(this.type==='artifact') { 
@@ -814,7 +811,7 @@
         class Rect { constructor(x, y, size) { this.x = x; this.y = y; this.size = size; } draw() { ctx.fillStyle = '#556'; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.fillStyle = '#EEF'; ctx.beginPath(); ctx.moveTo(this.x-2, this.y); ctx.lineTo(this.x+this.size+2, this.y); ctx.lineTo(this.x+this.size+2, this.y+15); for(let i=0; i<this.size; i+=10) ctx.arc(this.x+this.size-i, this.y+15, 5, 0, Math.PI); ctx.lineTo(this.x-2, this.y+15); ctx.fill(); ctx.strokeStyle='#223'; ctx.lineWidth=2; ctx.strokeRect(this.x, this.y, this.size, this.size); } }
         class Entity { constructor(x, y, radius, color, hp) { this.x=x; this.y=y; this.radius=radius; this.color=color; this.hp=hp; this.maxHp=hp; this.dead=false; this.cooldown=0; } drawBase() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2); ctx.fillStyle=this.color; ctx.fill(); ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.stroke(); } drawHealthBar() { if (this.hp < this.maxHp || this instanceof Player) { ctx.save(); ctx.fillStyle = '#FFFFFF'; ctx.font = "bold 12px Courier New"; ctx.textAlign = "center"; ctx.shadowColor = "black"; ctx.shadowBlur = 4; ctx.fillText(Math.ceil(this.hp), this.x, this.y - this.radius - 15); ctx.restore(); } if (this.hp < this.maxHp) { let w = this.radius * 2; ctx.fillStyle='red'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w, 4); ctx.fillStyle='#00FF00'; ctx.fillRect(this.x-w/2, this.y-this.radius-10, w*(this.hp/this.maxHp), 4); } } move(dx, dy) { if (!this.checkWallCollision(this.x+dx, this.y)) this.x+=dx; if (!this.checkWallCollision(this.x, this.y+dy)) this.y+=dy; this.x=Math.max(this.radius, Math.min(canvas.width-this.radius, this.x)); this.y=Math.max(this.radius, Math.min(canvas.height-this.radius, this.y)); } checkWallCollision(x, y) { for (let obs of obstacles) { let cx=Math.max(obs.x, Math.min(x, obs.x+obs.size)); let cy=Math.max(obs.y, Math.min(y, obs.y+obs.size)); if ((x-cx)**2 + (y-cy)**2 < this.radius**2) return true; } return false; } }
         
-        // --- PLAYER CLASS WITH NEW OUTFITS & WEAPONS ---
+        // --- PLAYER CLASS ---
         class Player extends Entity { 
             constructor(x, y) { 
                 let hp = 100;
@@ -836,7 +833,7 @@
                 else if (playerStats.currentOutfit === 'chain') { ctx.strokeStyle='#FFD700'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.stroke(); } 
                 else if (playerStats.currentOutfit === 'cap') { ctx.fillStyle='#C2B280'; ctx.beginPath(); ctx.arc(0,0,15,Math.PI*0.8,Math.PI*3.2); ctx.fill(); ctx.fillStyle='#A09165'; ctx.fillRect(13,-13,14,26); }
                 else if (playerStats.currentOutfit === 'nvg') { ctx.fillStyle='#333'; ctx.fillRect(-14,-12,28,8); ctx.fillStyle='#0F0'; ctx.beginPath(); ctx.arc(-6,-8,4,0,Math.PI*2); ctx.arc(6,-8,4,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=10; ctx.shadowColor='#0F0'; }
-                else if (playerStats.currentOutfit === 'crown') { ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.moveTo(-12,-10); ctx.lineTo(-12,-20); ctx.lineTo(-6,-15); ctx.lineTo(0,-22); ctx.lineTo(6,-15); ctx.lineTo(12,-20); ctx.lineTo(12,-10); ctx.close(); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.stroke(); }
+                else if (playerStats.currentOutfit === 'crown') { ctx.fillStyle='#FFD700'; ctx.beginPath(); ctx.moveTo(-12,-10); ctx.lineTo(-12,-20); ctx.lineTo(-6,-15); ctx.lineTo(0,-22); ctx.lineTo(6,-15); ctx.lineTo(12,-20); ctx.lineTo(12,-10); ctx.closePath(); ctx.fill(); ctx.strokeStyle='#DAA520'; ctx.stroke(); }
 
                 // Weapon Visuals
                 if (this.weapon === 'snowball') { ctx.fillStyle='#00FFFF'; ctx.fillRect(10,-5,20,10); ctx.fillStyle='#FFF'; ctx.fillRect(12,-7,10,14); } 
