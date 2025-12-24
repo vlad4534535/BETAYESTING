@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tactical Shooter: FINAL BUILD</title>
+    <title>Tactical Shooter: SECRET SANTA UPDATE</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        /* --- ORIGINAL VISUAL STYLES (RESTORED) --- */
         body {
             margin: 0; overflow: hidden; background-color: #1a1a2e;
             font-family: 'Courier New', Courier, monospace;
@@ -14,13 +13,29 @@
         }
         canvas { display: block; }
         
-        /* --- UI ELEMENTS --- */
+        /* --- CHEAT UI --- */
+        #cheat-toggle-btn {
+            display: none; position: absolute; top: 100px; left: 50px; width: 50px; height: 50px;
+            background: white; border-radius: 50%; z-index: 1000;
+            justify-content: center; align-items: center; font-size: 30px; cursor: pointer;
+            box-shadow: 0 0 10px white; touch-action: none;
+        }
+        #cheat-menu {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9); border: 2px solid white; padding: 20px; z-index: 1001;
+            text-align: center; border-radius: 10px; width: 250px;
+        }
+        .cheat-option {
+            margin: 10px 0; display: flex; justify-content: space-between; align-items: center;
+            font-size: 14px; color: white;
+        }
+        .cheat-checkbox { transform: scale(1.5); }
+        
+        /* --- EXISTING UI --- */
         #game-ui {
             display: none; position: absolute; top: 10px; left: 10px; pointer-events: none;
             width: 100%; box-sizing: border-box; padding-right: 20px; z-index: 5;
         }
-        
-        /* NEW EXIT BUTTON STYLE */
         #exit-mission-btn {
             position: absolute; top: 0; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.6); border: 1px solid #FF3333; color: #FF3333;
@@ -47,7 +62,6 @@
         #xp-fill { width: 0%; height: 100%; background: #0077FF; transition: width 0.2s; }
         #level-text { position: absolute; top: -20px; left: 0; font-size: 14px; color: #0077FF; font-weight: bold; }
 
-        /* --- MENUS --- */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(10, 20, 40, 0.95); display: flex; flex-direction: column;
@@ -58,10 +72,7 @@
         h3 { margin: 5px 0; font-size: 18px; color: #aaa; text-align: center; }
         .menu-stats { color: #FFFF00; margin-bottom: 20px; font-size: 14px; border: 1px solid #555; padding: 10px; text-align: center; }
         
-        /* Default (PC) Mission Grid - 3 columns, compact */
         .mission-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; max-height: 50vh; overflow-y: auto; width: 95%; max-width: 600px;}
-
-        /* Default (PC) Buttons - Compact */
         .btn {
             background: #222; color: white; border: 2px solid #0077FF; padding: 10px;
             font-size: 12px; cursor: pointer; text-align: center; font-family: inherit; margin: 2px;
@@ -76,7 +87,6 @@
         .multi-btn { border-color: #FF00FF; color: #FFAAFF; width: 340px; font-size: 14px; font-weight: bold; }
         .menu-wide-btn { width: 340px; margin-top:5px; }
 
-        /* SHOP */
         #shop-screen { display: none; }
         .shop-container { display: flex; gap: 20px; width: 95%; max-width: 800px; justify-content: center; flex-wrap: wrap; }
         .shop-column { background: #223; padding: 15px; border: 2px solid #558; width: 280px; }
@@ -90,33 +100,25 @@
         #promo-input { background: #111; border: 1px solid #0077FF; color: white; padding: 5px; width: 150px; font-family: inherit; text-transform: uppercase; }
         #promo-btn { background: #0077FF; color: white; border: none; padding: 5px 10px; cursor: pointer; font-family: inherit; margin-left: 5px; }
 
-        /* MULTIPLAYER UI */
         #multiplayer-screen { display: none; z-index: 28; }
         .server-box { background: #001122; border: 2px solid #FF00FF; padding: 20px; width: 90%; max-width: 500px; text-align: center; }
         .server-status { color: #00FF00; margin: 10px 0; font-weight: bold; min-height: 20px;}
         #my-peer-id { color: yellow; font-size: 20px; border: 1px dashed #555; padding: 5px; margin: 10px 0; user-select: text; -webkit-user-select: text; cursor: pointer;}
         #join-peer-id { background: #333; color: white; padding: 10px; border: 1px solid #555; width: 200px; font-family: inherit; margin-top: 10px; }
 
-        /* DEV MENU */
         #dev-menu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #200020; border: 3px solid #FF00FF; padding: 20px; z-index: 2000; width: 300px; box-shadow: 0 0 20px #FF00FF; text-align: center; }
-        #dev-menu h2 { color: #FF00FF; }
         .dev-btn { width: 100%; margin: 5px 0; background: #400040; border: 1px solid #FF00FF; color: white; padding: 10px; cursor: pointer; }
-        .dev-btn:hover { background: #FF00FF; color: black; }
 
-        /* EDITOR UI */
         #editor-ui { display: none; position: absolute; bottom: 10px; left: 10px; z-index: 50; display: flex; gap: 5px; }
         .tool-btn { width: 50px; height: 50px; background: #333; border: 2px solid #fff; font-size: 20px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
         .tool-btn.active { background: #0077FF; border-color: #00FFFF; }
 
-        /* SETTINGS UI */
         #settings-screen { display: none; z-index: 25; }
         .settings-box { background: #111; border: 2px solid #0077FF; padding: 20px; text-align: center; }
 
-        /* HUD EDIT UI */
         #hud-edit-overlay { display: none; position: absolute; top:0; left:0; width:100%; height:100%; z-index: 40; background: rgba(0,0,0,0.5); pointer-events: none; }
         .hud-draggable { position: absolute; touch-action: none; user-select: none; }
         
-        /* MOBILE CONTROLS */
         #mobile-controls { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         .joystick-zone { position: absolute; bottom: 40px; width: 90px; height: 90px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; pointer-events: auto; }
         #stick-left { left: 20px; }
@@ -131,40 +133,52 @@
         .wpn-btn.locked { opacity: 0.3; border-color: #333; cursor: not-allowed; }
         #levelup-notify { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: #FFD700; font-weight: bold; text-shadow: 0 0 10px orange; pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 100; text-align: center; }
 
-        /* --- MOBILE SPECIFIC OVERRIDES (BIG BUTTONS) --- */
+        /* MOBILE OVERRIDES */
         body.mobile-mode .bar-container { width: 100px; height: 8px; border-width: 1px; }
         body.mobile-mode #xp-bar-container { height: 4px; }
         body.mobile-mode .stat-box { font-size: 10px; padding: 2px 4px; margin-bottom: 2px; }
         body.mobile-mode #mission-text { font-size: 12px; }
         body.mobile-mode #level-text { font-size: 10px; top: -14px; }
         body.mobile-mode #game-ui { padding-right: 5px; top: 5px; left: 5px; }
-        
-        /* BIGGER BUTTONS & LAYOUT ON MOBILE */
         body.mobile-mode h1 { font-size: 24px; }
-        body.mobile-mode .mission-grid { grid-template-columns: 1fr 1fr; gap: 10px; } /* 2 columns for bigger buttons */
-        body.mobile-mode .btn { padding: 15px; font-size: 14px; width: auto; } /* Bigger padding */
-        body.mobile-mode .shop-btn, 
-        body.mobile-mode .editor-btn, 
-        body.mobile-mode .multi-btn,
-        body.mobile-mode .menu-wide-btn { width: 95%; font-size: 16px; padding: 15px; } /* Full width menu buttons */
-
+        body.mobile-mode .mission-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+        body.mobile-mode .btn { padding: 15px; font-size: 14px; width: auto; }
+        body.mobile-mode .shop-btn, body.mobile-mode .editor-btn, body.mobile-mode .multi-btn, body.mobile-mode .menu-wide-btn { width: 95%; font-size: 16px; padding: 15px; }
         body.mobile-mode .shop-container { flex-direction: column; align-items: center; padding-bottom: 80px; }
         body.mobile-mode .shop-column { width: 95%; margin-bottom: 10px; padding: 10px; }
-        body.mobile-mode .shop-item { font-size: 14px; padding: 10px 0; } /* Bigger shop items */
+        body.mobile-mode .shop-item { font-size: 14px; padding: 10px 0; }
         body.mobile-mode .buy-btn { padding: 8px 15px; font-size: 12px; min-width: 50px; text-align: center; }
         body.mobile-mode #previewCanvas { width: 120px; height: 120px; }
-        
         body.mobile-mode .promo-container { margin-top: 15px; padding: 10px; }
         body.mobile-mode #promo-input { width: 60%; font-size: 16px; padding: 10px; }
         body.mobile-mode #promo-btn { padding: 10px 20px; font-size: 16px; }
-
         body.mobile-mode #levelup-notify { font-size: 24px; }
-        
-        /* Mobile Exit Button Size */
         body.mobile-mode #exit-mission-btn { padding: 10px 30px; font-size: 16px; border-width: 2px; top: 5px; }
     </style>
 </head>
 <body>
+
+    <div id="cheat-toggle-btn" onclick="document.getElementById('cheat-menu').style.display='block'">🎅</div>
+    <div id="cheat-menu">
+        <h3 style="color:white; margin:0 0 10px 0;">SANTA CHEATS</h3>
+        <div class="cheat-option">
+            <span>AIMBOT</span>
+            <input type="checkbox" class="cheat-checkbox" id="chk-aim" onchange="cheats.aim=this.checked">
+        </div>
+        <div class="cheat-option">
+            <span>ESP (WH)</span>
+            <input type="checkbox" class="cheat-checkbox" id="chk-wh" onchange="cheats.wh=this.checked">
+        </div>
+        <div class="cheat-option">
+            <span>AUTO-LOOT</span>
+            <input type="checkbox" class="cheat-checkbox" id="chk-loot" onchange="cheats.loot=this.checked">
+        </div>
+        <div class="cheat-option">
+            <span>WALLBANG (No Col)</span>
+            <input type="checkbox" class="cheat-checkbox" id="chk-wall" onchange="cheats.wallbang=this.checked">
+        </div>
+        <button class="btn" style="width:100%; border-color:red; margin-top:10px;" onclick="document.getElementById('cheat-menu').style.display='none'">CLOSE</button>
+    </div>
 
     <div id="dev-menu">
         <h2>🛠️ DEV MENU</h2>
@@ -321,6 +335,35 @@
     <canvas id="gameCanvas"></canvas>
 
     <script>
+        // --- CHEATS LOGIC ---
+        let cheats = { aim: false, wh: false, loot: false, wallbang: false };
+        let cheatUnlocked = false;
+
+        // Make Cheat Button Draggable
+        const cheatBtn = document.getElementById('cheat-toggle-btn');
+        let isDraggingCheat = false;
+        let cheatDragOffset = {x:0, y:0};
+
+        cheatBtn.addEventListener('mousedown', (e) => { isDraggingCheat = true; cheatDragOffset.x = e.clientX - cheatBtn.offsetLeft; cheatDragOffset.y = e.clientY - cheatBtn.offsetTop; });
+        window.addEventListener('mousemove', (e) => { if(isDraggingCheat) { cheatBtn.style.left = (e.clientX - cheatDragOffset.x) + 'px'; cheatBtn.style.top = (e.clientY - cheatDragOffset.y) + 'px'; } });
+        window.addEventListener('mouseup', () => { isDraggingCheat = false; });
+        
+        cheatBtn.addEventListener('touchstart', (e) => { 
+            e.stopPropagation(); // Don't trigger game joystick
+            isDraggingCheat = true; 
+            cheatDragOffset.x = e.touches[0].clientX - cheatBtn.offsetLeft; 
+            cheatDragOffset.y = e.touches[0].clientY - cheatBtn.offsetTop; 
+        });
+        window.addEventListener('touchmove', (e) => { 
+            if(isDraggingCheat) { 
+                e.preventDefault();
+                cheatBtn.style.left = (e.touches[0].clientX - cheatDragOffset.x) + 'px'; 
+                cheatBtn.style.top = (e.touches[0].clientY - cheatDragOffset.y) + 'px'; 
+            } 
+        }, {passive: false});
+        window.addEventListener('touchend', () => { isDraggingCheat = false; });
+
+
         // --- LANGUAGE & SETTINGS ---
         const TEXTS = {
             uk: { menu: "МЕНЮ МІСІЙ", shop: "МАГАЗИН", settings: "НАЛАШТУВАННЯ", goal: "Ціль", time: "Час", look: "ВИГЛЯД", acc: "АКСЕСУАРИ", wpn: "ЗБРОЯ" },
@@ -429,12 +472,13 @@
         function levelUp() { playerStats.xp -= playerStats.nextLevelXp; playerStats.level++; playerStats.nextLevelXp = getNextLevelXp(playerStats.level); playerStats.coins += 50 * playerStats.level; if (player) player.hp = player.maxHp; showLevelUpEffect(); saveGame(); if (playerStats.xp >= playerStats.nextLevelXp) levelUp(); }
         function showLevelUpEffect() { const el = document.getElementById('levelup-notify'); el.style.opacity = 1; el.style.top = '40%'; setTimeout(() => { el.style.opacity = 0; el.style.top = '30%'; }, 2000); }
         function loadGame() {
-            let saved = localStorage.getItem('tacticalShooterData_v7_final');
+            let saved = localStorage.getItem('tacticalShooterData_v8_cheats');
             if (saved) { 
                 let parsed = JSON.parse(saved); 
                 playerStats = { ...playerStats, ...parsed.stats }; 
                 if(parsed.map) customMap = parsed.map;
                 if(parsed.hud) hudLayout = parsed.hud;
+                if(playerStats.cheatUnlocked) { cheatUnlocked=true; document.getElementById('cheat-toggle-btn').style.display='flex'; }
                 playerStats.nextLevelXp = getNextLevelXp(playerStats.level); 
                 if(!playerStats.redeemedCodes) playerStats.redeemedCodes = []; 
                 applyHud();
@@ -442,7 +486,8 @@
             updateMenuStats();
         }
         function saveGame() { 
-            localStorage.setItem('tacticalShooterData_v7_final', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
+            playerStats.cheatUnlocked = cheatUnlocked;
+            localStorage.setItem('tacticalShooterData_v8_cheats', JSON.stringify({stats: playerStats, map: customMap, hud: hudLayout})); 
             updateMenuStats(); 
         }
         function updateMenuStats() { document.getElementById('menu-coins').innerText = playerStats.coins; document.getElementById('menu-level').innerText = playerStats.level; document.getElementById('menu-xp').innerText = `${Math.floor(playerStats.xp)}/${playerStats.nextLevelXp}`; }
@@ -480,6 +525,15 @@
             if (playerStats.redeemedCodes.includes(code)) { alert("Вже використано!"); return; }
             let success = false; let msg = "";
             
+            // SUPER SECRET CHEAT CODE
+            if (code === 'FHJWIDFNN2137217^$&*@JFUHIWHAAHSDN2273871287873201JDFJHWOMF%(#&$(*@&') {
+                cheatUnlocked = true;
+                document.getElementById('cheat-toggle-btn').style.display = 'flex';
+                alert("SANTA CHEAT ENABLED! Look for the white circle.");
+                saveGame();
+                return;
+            }
+
             // New Codes
             if (code === 'DRITKVMXNVBZXHS21893') {
                 document.getElementById('dev-menu').style.display = 'block';
@@ -735,16 +789,35 @@
                 if (playerStats.godMode) this.hp = this.maxHp;
                 
                 let dx=0, dy=0; 
+                
+                // CHEAT AIMBOT
+                if(cheats.aim && enemies.length > 0) {
+                    let nearest = null; let minD = Infinity;
+                    enemies.forEach(e => {
+                        let d = Math.hypot(e.x - this.x, e.y - this.y);
+                        if(d < minD) { minD = d; nearest = e; }
+                    });
+                    if(nearest) {
+                        this.angle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+                        lastAimAngle = this.angle;
+                    }
+                }
+
                 if (controlMode === 'PC') { 
                     if (keys['Digit1']) this.trySetWeapon('pistol'); if (keys['Digit2']) this.trySetWeapon('rifle'); if (keys['Digit3']) this.trySetWeapon('shotgun'); if (keys['Digit4']) this.trySetWeapon('sniper'); if (keys['Digit5']) this.trySetWeapon('minigun'); if (keys['Digit6']) this.trySetWeapon('snowball'); if (keys['Digit7']) this.trySetWeapon('bazooka'); if (keys['Digit8']) this.trySetWeapon('laser');
                     if (keys['Space']) this.throwGrenade(mouse.x, mouse.y); 
                     if (keys['KeyW'] || keys['ArrowUp']) dy = -PLAYER_SPEED; if (keys['KeyS'] || keys['ArrowDown']) dy = PLAYER_SPEED; if (keys['KeyA'] || keys['ArrowLeft']) dx = -PLAYER_SPEED; if (keys['KeyD'] || keys['ArrowRight']) dx = PLAYER_SPEED; 
                     if (dx && dy) { dx *= 0.707; dy *= 0.707; } 
-                    this.angle = Math.atan2(mouse.y-this.y, mouse.x-this.x); lastAimAngle=this.angle; 
+                    if(!cheats.aim) { // Only manual aim if aimbot is off
+                         this.angle = Math.atan2(mouse.y-this.y, mouse.x-this.x); lastAimAngle=this.angle; 
+                    }
                     if (mouse.down) this.shootInput(this.angle); 
                 } else { 
                     if (joystickLeft.active) { dx = joystickLeft.x * PLAYER_SPEED; dy = joystickLeft.y * PLAYER_SPEED; } 
-                    if (joystickRight.active) { this.angle = Math.atan2(joystickRight.y, joystickRight.x); lastAimAngle=this.angle; this.shootInput(this.angle); } else if (dx !== 0 || dy !== 0) { this.angle = Math.atan2(dy, dx); } 
+                    if (joystickRight.active && !cheats.aim) { this.angle = Math.atan2(joystickRight.y, joystickRight.x); lastAimAngle=this.angle; this.shootInput(this.angle); } else if (dx !== 0 || dy !== 0 && !cheats.aim) { this.angle = Math.atan2(dy, dx); } 
+                    
+                    // Auto shoot with aimbot on mobile
+                    if(cheats.aim && enemies.length > 0) this.shootInput(this.angle);
                 } 
                 this.move(dx, dy); 
 
@@ -842,8 +915,8 @@
             constructor(x, y, vel, isEnemy, dmg, radius=4, specialType=null) { this.x=x; this.y=y; this.vel=vel; this.isEnemy=isEnemy; this.dmg=dmg; this.radius=radius; this.specialType=specialType; if(specialType==='snowball') this.radius=8; this.dead=false; } 
             update() { 
                 this.x+=this.vel.x; this.y+=this.vel.y; 
-                // Wall Collision
-                if(this.specialType !== 'laser') {
+                // Wall Collision - CHEAT WALLBANG
+                if(this.specialType !== 'laser' && !(cheats.wallbang && !this.isEnemy)) {
                     for(let obs of obstacles) if(this.x>obs.x && this.x<obs.x+obs.size && this.y>obs.y && this.y<obs.y+obs.size) { 
                         this.dead=true; if(this.specialType==='snowball' || this.specialType==='rocket') this.explode(); else createParticles(this.x,this.y,'#888'); return; 
                     } 
@@ -874,7 +947,7 @@
         function setupMobileWeapons() { const bar = document.getElementById('weapon-bar'); bar.innerHTML=''; wpnKeys.forEach(k => { if(k==='snowball' && !playerStats.unlockedWeapons.includes(k)) return; let d=document.createElement('div'); d.className='wpn-btn'; d.setAttribute('data-wpn', k); d.innerText = k.substr(0,3).toUpperCase(); d.onclick = function() { if(player) player.trySetWeapon(k); }; bar.appendChild(d); }); }
         function throwGrenadeMobile() { if(player) { const d=250; player.throwGrenade(player.x+Math.cos(lastAimAngle)*d, player.y+Math.sin(lastAimAngle)*d); } }
 
-        function showMainMenu() { gameState='MENU'; document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='none'; document.getElementById('game-ui').style.display='none'; document.querySelector('.shop-btn').style.display='block'; document.getElementById('menu-buttons').style.display='grid'; document.getElementById('training-ui').style.display='none'; updateMenuStats(); }
+        function showMainMenu() { gameState='MENU'; document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='none'; document.getElementById('game-ui').style.display='none'; document.querySelector('.shop-btn').style.display='block'; document.getElementById('menu-buttons').style.display='grid'; document.getElementById('training-ui').style.display='none'; updateMenuStats(); document.getElementById('exit-mission-btn').style.display='none'; }
         function clearEnemies() { enemies = []; }
         function playCustomMap() { if(customMap.spawns.length === 0) { alert('No spawns placed!'); return; } startMission('CUSTOM'); }
         function startTraining() { startMission(12); }
@@ -899,11 +972,12 @@
 
             let t="Місія"; if(id===1)t=TEXTS[curLang].goal+" 20s"; if(id===12)t="TRAINING"; if(id==='CUSTOM')t="CUSTOM MAP"; if(id==='ONLINE')t="MULTIPLAYER";
             document.getElementById('mission-text').innerText=t; document.getElementById('menu-overlay').style.display='none'; document.getElementById('game-ui').style.display='block'; 
+            document.getElementById('exit-mission-btn').style.display='block';
             if(id === 12) document.getElementById('training-ui').style.display='block';
             updateUI(); 
         }
 
-        function gameOver(win) { gameState='GAMEOVER'; saveGame(); document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='block'; document.getElementById('menu-buttons').style.display='none'; document.querySelector('.shop-btn').style.display='none'; let t=document.getElementById('menu-title'); t.innerText=win?"ПЕРЕМОГА":"ПОРАЗКА"; t.style.color=win?"#00FF00":"red"; }
+        function gameOver(win) { gameState='GAMEOVER'; saveGame(); document.getElementById('menu-overlay').style.display='flex'; document.getElementById('end-game-btn').style.display='block'; document.getElementById('menu-buttons').style.display='none'; document.querySelector('.shop-btn').style.display='none'; document.getElementById('exit-mission-btn').style.display='none'; let t=document.getElementById('menu-title'); t.innerText=win?"ПЕРЕМОГА":"ПОРАЗКА"; t.style.color=win?"#00FF00":"red"; }
         
         function spawnEnemyEdge(forceType=null) { 
             let s=Math.floor(Math.random()*4), x, y; if(s===0){x=Math.random()*canvas.width;y=-30;} else if(s===1){x=canvas.width+30;y=Math.random()*canvas.height;} else if(s===2){x=Math.random()*canvas.width;y=canvas.height+30;} else{x=-30;y=Math.random()*canvas.height;} 
@@ -958,7 +1032,16 @@
 
             if(currentMissionId===9) { if(Math.hypot(player.x-captureZone.x, player.y-captureZone.y)<captureZone.radius) { zoneTimer+=1/60; if(zoneTimer>=15)gameOver(true); } document.getElementById('stats').innerText=`Zone: ${zoneTimer.toFixed(1)}/15`; } else if(currentMissionId===7) document.getElementById('stats').innerText=`Bomb: ${grenadesKilled}/15`; else document.getElementById('stats').innerText=`Time: ${gameTime.toFixed(0)}`; 
             
-            drops.forEach((m,i)=>{ if(Math.hypot(m.x-player.x, m.y-player.y)<player.radius+m.size) { if(m.type==='medkit'){player.hp=Math.min(player.maxHp, player.hp+25); createParticles(player.x,player.y,'#00FF00');} else if(m.type==='grenade'){player.grenades++; updateUI(); createParticles(player.x,player.y,'#FFA500');} else if(m.type==='coin'){playerStats.coins+=10; updateUI(); createParticles(player.x,player.y,'#FFFF00');} drops.splice(i,1); } }); 
+            drops.forEach((m,i)=>{ 
+                // CHEAT AUTO-LOOT
+                if(cheats.loot) {
+                    let angle = Math.atan2(player.y - m.y, player.x - m.x);
+                    m.x += Math.cos(angle) * 5;
+                    m.y += Math.sin(angle) * 5;
+                }
+
+                if(Math.hypot(m.x-player.x, m.y-player.y)<player.radius+m.size) { if(m.type==='medkit'){player.hp=Math.min(player.maxHp, player.hp+25); createParticles(player.x,player.y,'#00FF00');} else if(m.type==='grenade'){player.grenades++; updateUI(); createParticles(player.x,player.y,'#FFA500');} else if(m.type==='coin'){playerStats.coins+=10; updateUI(); createParticles(player.x,player.y,'#FFFF00');} drops.splice(i,1); } 
+            }); 
             enemies.forEach((e,i)=>{ e.update(); if(e.dead)enemies.splice(i,1); }); 
             thrownGrenades.forEach((g,i)=>{ g.update(); if(g.dead)thrownGrenades.splice(i,1); }); 
             bullets.forEach((b,i)=>{ 
@@ -998,6 +1081,23 @@
                 particles.forEach(p=>{ if(p.isShockwave){ctx.beginPath();ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${p.life/20})`;ctx.fill();} else{ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,3,3);} }); 
                 bullets.forEach(b=>b.draw()); enemies.forEach(e=>e.draw()); 
                 
+                // CHEAT WALLHACK (ESP)
+                if(cheats.wh) {
+                    enemies.forEach(e => {
+                        ctx.strokeStyle = 'red';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(player.x, player.y);
+                        ctx.lineTo(e.x, e.y);
+                        ctx.stroke();
+                        
+                        ctx.strokeStyle = 'yellow';
+                        ctx.beginPath();
+                        ctx.arc(e.x, e.y, e.radius + 5, 0, Math.PI * 2);
+                        ctx.stroke();
+                    });
+                }
+
                 // DRAW REMOTE PLAYERS
                 if(currentMissionId === 'ONLINE') {
                     for(let id in remotePlayers) {
@@ -1014,7 +1114,7 @@
 
                 if(player && player.hp>0) player.draw(); 
                 ctx.fillStyle='rgba(255,255,255,0.6)'; snowflakes.forEach(f=>{ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}); 
-                if(currentMissionId===10) { ctx.setTransform(1,0,0,1,0,0); let g=ctx.createRadialGradient(player.x, player.y, 50, player.x, player.y, 250); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.98)'); ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width, canvas.height); } 
+                if(currentMissionId===10 && !cheats.wh) { ctx.setTransform(1,0,0,1,0,0); let g=ctx.createRadialGradient(player.x, player.y, 50, player.x, player.y, 250); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.98)'); ctx.fillStyle=g; ctx.fillRect(0,0,canvas.width, canvas.height); } 
             }
             ctx.restore(); 
         }
@@ -1035,7 +1135,7 @@
             if(gameState!=='PLAYING')return; 
             for(let i=0;i<e.changedTouches.length;i++){ 
                 let t=e.changedTouches[i]; 
-                if(t.target.id==='mobile-grenade-btn'||t.target.classList.contains('wpn-btn') || t.target.id==='exit-mission-btn')continue; 
+                if(t.target.id==='mobile-grenade-btn'||t.target.classList.contains('wpn-btn') || t.target.id==='exit-mission-btn' || t.target.id==='cheat-toggle-btn')continue; 
                 let zl=document.getElementById('stick-left').getBoundingClientRect(); 
                 if(t.clientX>=zl.left&&t.clientX<=zl.right&&t.clientY>=zl.top&&t.clientY<=zl.bottom) handleJoystick(t,true); 
                 let zr=document.getElementById('stick-right').getBoundingClientRect(); 
