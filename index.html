@@ -2,553 +2,413 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyStrike: EVOLUTION 2.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GOODGAME - Магазин игр</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Rajdhani:wght@500;700&display=swap');
-        
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Rajdhani', sans-serif; user-select: none; color: white; }
-        
-        /* === UI ЭЛЕМЕНТЫ === */
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; z-index: 10; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1a202c 0%, #000 100%); }
-        .active { display: flex; }
-
-        .panel {
-            background: rgba(10, 15, 30, 0.85);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            padding: 30px; border-radius: 15px; text-align: center;
-            box-shadow: 0 0 30px rgba(0, 229, 255, 0.1); width: 90%; max-width: 450px;
-            position: relative;
+        /* --- СТИЛИ (CSS) --- */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #171a21; /* Цвет фона Steam */
+            color: #c7d5e0;
+            margin: 0;
+            padding: 0;
         }
 
-        h1 { font-family: 'Orbitron'; font-size: 42px; margin: 0 0 20px 0; color: #00e5ff; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 15px rgba(0, 229, 255, 0.8); }
-        h2 { font-family: 'Orbitron'; color: #fff; letter-spacing: 2px; }
-        
-        .btn {
-            background: linear-gradient(90deg, #00c6ff, #0072ff);
-            border: none; padding: 12px 25px; margin: 8px; color: #fff;
-            font-family: 'Orbitron'; font-size: 14px; font-weight: bold;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
-            cursor: pointer; transition: 0.2s; width: 100%; text-transform: uppercase;
+        /* Шапка */
+        header {
+            background-color: #171a21;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a475e;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
-        .btn:active { transform: scale(0.96); }
-        .btn-sec { background: transparent; border: 1px solid rgba(255,255,255,0.3); }
-        .btn-green { background: linear-gradient(90deg, #11998e, #38ef7d); }
 
-        .item-card {
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
-            transition: 0.2s;
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #66c0f4; /* Голубой цвет Steam */
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
-        .item-card.selected { border-color: #00e5ff; background: rgba(0, 229, 255, 0.1); }
-        
-        /* ИГРОВОЙ ИНТЕРФЕЙС */
-        #game-ui { pointer-events: none; background: transparent; justify-content: flex-start; }
-        
-        .top-hud { 
-            position: absolute; top: 15px; width: 92%; display: flex; justify-content: space-between; align-items: center;
+
+        .nav-buttons button {
+            background-color: #5c7e10;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 2px;
+            margin-left: 10px;
         }
-        .stat-box { background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; border-left: 3px solid #00e5ff; }
-
-        .hp-bar-bg { width: 200px; height: 12px; background: #333; transform: skewX(-20deg); overflow: hidden; border: 1px solid #555; }
-        .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff3333, #ff8800); transition: 0.3s; }
-
-        #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; opacity: 0.8; }
-        #crosshair::before, #crosshair::after { content:''; position: absolute; background: #0f0; }
-        #crosshair::before { width: 2px; height: 10px; left: 9px; top: 5px; }
-        #crosshair::after { width: 10px; height: 2px; top: 9px; left: 5px; }
-
-        #ammo-display { position: absolute; bottom: 30px; right: 30px; font-family: 'Orbitron'; font-size: 30px; color: #00e5ff; text-shadow: 0 0 10px #00e5ff; }
-
-        /* МОБИЛЬНОЕ УПРАВЛЕНИЕ */
-        .controls { position: absolute; width: 100%; height: 100%; pointer-events: none; display: none; }
-        .touch-btn { position: absolute; pointer-events: auto; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; backdrop-filter: blur(4px); }
-        #stick-zone { bottom: 40px; left: 40px; width: 120px; height: 120px; }
-        #stick-knob { width: 40px; height: 40px; background: rgba(255,255,255,0.8); position: absolute; top: 40px; left: 40px; border-radius: 50%; pointer-events: none; box-shadow: 0 0 10px white; }
         
-        #damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, transparent 50%, rgba(255,0,0,0.5) 100%); opacity: 0; transition: 0.2s; pointer-events: none; }
+        .nav-buttons button.secondary {
+            background-color: #2a475e;
+        }
+
+        .nav-buttons button:hover {
+            filter: brightness(1.2);
+        }
+
+        /* Контейнер */
+        .container {
+            max-width: 940px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* Админ панель */
+        #adminPanel {
+            background-color: #1b2838;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #66c0f4;
+            display: none; /* Скрыто по умолчанию */
+        }
+
+        h2 { color: #ffffff; border-bottom: 1px solid #2a475e; padding-bottom: 10px; }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            background-color: #2a3f5a;
+            border: 1px solid #000;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        /* Сетка игр */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background-color: #16202d;
+            border: 1px solid #2a475e;
+            transition: transform 0.2s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .game-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            background-color: #000;
+        }
+
+        .game-info {
+            padding: 15px;
+        }
+
+        .game-title {
+            font-size: 18px;
+            color: #ffffff;
+            margin: 0 0 10px 0;
+        }
+
+        .game-desc {
+            font-size: 13px;
+            color: #8f98a0;
+            margin-bottom: 15px;
+            height: 60px;
+            overflow: hidden;
+        }
+
+        .play-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            background: linear-gradient( to bottom, #47bfff 5%, #1a44c2 60%);
+            color: white;
+            text-decoration: none;
+            padding: 10px 0;
+            border-radius: 2px;
+        }
+
+        .play-btn:hover {
+            background: linear-gradient( to bottom, #66c0f4 5%, #2354e6 60%);
+        }
+
+        /* Секция отзывов и деталей */
+        .interactions {
+            margin-top: 10px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+
+        .like-btn {
+            background: none;
+            border: none;
+            color: #66c0f4;
+            cursor: pointer;
+        }
+
+        .reviews-section {
+            margin-top: 10px;
+            background: #00000030;
+            padding: 10px;
+            font-size: 12px;
+        }
+
+        .review {
+            border-bottom: 1px solid #333;
+            padding: 5px 0;
+        }
+        
+        .admin-reply {
+            margin-left: 20px;
+            color: #66c0f4;
+            border-left: 2px solid #66c0f4;
+            padding-left: 10px;
+            margin-top: 5px;
+        }
+
+        /* Модальное окно входа */
+        #loginModal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #1b2838;
+            padding: 40px;
+            width: 300px;
+            border: 1px solid #2a475e;
+            text-align: center;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="device-screen" class="screen active">
-        <h1>PolyStrike<br><span style="font-size:20px; color:#fff">EVOLUTION</span></h1>
-        <div class="panel">
-            <h3>ВЫБЕРИ УПРАВЛЕНИЕ</h3>
-            <button class="btn" style="height:60px; font-size:18px;" onclick="selectDevice('PC')">💻 PC (Клавиатура)</button>
-            <button class="btn" style="height:60px; font-size:18px;" onclick="selectDevice('MOBILE')">📱 ТЕЛЕФОН (Сенсор)</button>
-        </div>
+<div id="loginModal">
+    <div class="modal-content">
+        <h2 style="margin-top:0">Вход в GOODGAME</h2>
+        <input type="text" id="usernameInput" placeholder="Никнейм">
+        <input type="password" id="passwordInput" placeholder="Пароль">
+        <button class="play-btn" onclick="login()">Войти / Регистрация</button>
+        <p style="font-size: 12px; color: #888;">Если аккаунта нет, он будет создан.</p>
+    </div>
+</div>
+
+<header>
+    <div class="logo">GOODGAME</div>
+    <div class="nav-buttons">
+        <span id="userDisplay" style="margin-right: 15px; color: #66c0f4;">Гость</span>
+        <button class="secondary" onclick="openSupport()">Поддержка</button>
+        <button onclick="logout()">Выйти</button>
+    </div>
+</header>
+
+<div class="container">
+    <div id="adminPanel">
+        <h2>🛠 Панель Разработчика (Admin)</h2>
+        <p>Добавить новую игру в магазин:</p>
+        <input type="text" id="newGameTitle" placeholder="Название игры">
+        <input type="text" id="newGameImg" placeholder="Ссылка на картинку (URL)">
+        <input type="text" id="newGameLink" placeholder="Ссылка на игру (HTML файл или сайт)">
+        <textarea id="newGameDesc" rows="3" placeholder="Описание игры..."></textarea>
+        <button class="nav-buttons button" style="background-color: #5c7e10; color: white; padding: 10px; border:none; cursor:pointer;" onclick="publishGame()">ОПУБЛИКОВАТЬ ИГРУ</button>
     </div>
 
-    <div id="menu-screen" class="screen">
-        <div class="top-hud" style="justify-content: center;">
-            <div class="stat-box">💰 <span id="money-display">1000</span></div>
+    <h2>Популярные новинки</h2>
+    <div class="games-grid" id="gamesContainer">
         </div>
+</div>
+
+<script>
+    // --- ДАННЫЕ И ПЕРЕМЕННЫЕ ---
+    let currentUser = null;
+    let isAdmin = false;
+    
+    // Загрузка игр из памяти (или создание стандартных, если пусто)
+    let games = JSON.parse(localStorage.getItem('goodgame_games')) || [
+        {
+            id: 1,
+            title: "Demo Shooter",
+            desc: "Классический шутер. Уничтожь всех врагов!",
+            img: "https://via.placeholder.com/300x160/000000/ffffff?text=Shooter",
+            link: "#",
+            likes: 124,
+            reviews: [
+                {user: "Player1", text: "Топ игра!", reply: ""}
+            ]
+        }
+    ];
+
+    // --- ФУНКЦИИ ---
+
+    function saveGames() {
+        localStorage.setItem('goodgame_games', JSON.stringify(games));
+        renderGames();
+    }
+
+    // Логика входа
+    function login() {
+        const userIn = document.getElementById('usernameInput').value;
+        const passIn = document.getElementById('passwordInput').value;
         
-        <div class="panel">
-            <input type="text" id="nick-input" placeholder="Твой Никнейм" style="background:transparent; border:none; border-bottom:2px solid #00e5ff; color:white; text-align:center; font-family:'Orbitron'; font-size:20px; width:80%; margin-bottom:20px; outline:none;">
-            
-            <button class="btn" onclick="openLobby()">⚔️ ИГРАТЬ ОНЛАЙН</button>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; width:100%;">
-                <button class="btn btn-sec" onclick="openShop('skins')">👕 СКИНЫ</button>
-                <button class="btn btn-sec" onclick="openShop('guns')">🔫 ОРУЖИЕ</button>
-            </div>
-        </div>
-    </div>
+        if (!userIn) return alert("Введите ник!");
 
-    <div id="shop-screen" class="screen">
-        <h2 id="shop-title">МАГАЗИН</h2>
-        <div class="panel" style="width:95%; max-width:600px; height:60%; overflow-y:auto;" id="shop-container">
-            </div>
-        <button class="btn btn-sec" style="width:200px; margin-top:20px;" onclick="toMenu()">НАЗАД</button>
-    </div>
-
-    <div id="lobby-screen" class="screen">
-        <div class="panel">
-            <h2>СЕТЕВАЯ ИГРА</h2>
-            <p style="color:#aaa; font-size:12px;">PeerJS P2P System</p>
-            
-            <button class="btn btn-green" onclick="hostGame()">СОЗДАТЬ КОМНАТУ (HOST)</button>
-            
-            <div style="margin: 20px 0; border-top:1px solid #333; padding-top:20px;">
-                <input id="join-code" placeholder="Вставь ID друга сюда" style="width:100%; padding:15px; text-align:center; background:#000; border:1px solid #444; color:#fff; font-family:'Orbitron'; margin-bottom:10px;">
-                <button class="btn" onclick="joinGame()">ПОДКЛЮЧИТЬСЯ</button>
-            </div>
-            
-            <div id="status-log" style="color:#0ff; margin-top:10px; height:40px; display:flex; justify-content:center; align-items:center;"></div>
-            <button class="btn btn-sec" onclick="toMenu()">ОТМЕНА</button>
-        </div>
-    </div>
-
-    <div id="game-ui" class="screen">
-        <div id="damage-overlay"></div>
-        <div class="top-hud">
-            <div>
-                <div style="font-size:14px; color:#00e5ff; font-weight:bold; margin-bottom:5px;">ЗДОРОВЬЕ</div>
-                <div class="hp-bar-bg"><div class="hp-fill" id="hp-val"></div></div>
-            </div>
-            <div class="stat-box" style="text-align:right">
-                <span id="score-text" style="font-size:24px; font-weight:bold; font-family:'Orbitron'">0 : 0</span>
-            </div>
-        </div>
-
-        <div id="crosshair"></div>
-        <div id="ammo-display">30 / ∞</div>
+        // ПРОВЕРКА НА АДМИНА
+        const adminPass = "FHSWJDJWJDH@*&$*!@*(#@*dndnanmnasnd";
         
-        <div id="mobile-controls" class="controls">
-            <div id="stick-zone" class="touch-btn"><div id="stick-knob"></div></div>
-            <div id="btn-shoot" class="touch-btn" style="bottom:80px; right:30px; width:70px; height:70px; background:rgba(255,50,50,0.2); border-color:#f00; display:flex; justify-content:center; align-items:center; font-size:30px;">🔥</div>
-            <div id="btn-jump" class="touch-btn" style="bottom:170px; right:40px; width:50px; height:50px; display:flex; justify-content:center; align-items:center;">⬆️</div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-
-    <script>
-        /* === КОНФИГУРАЦИЯ И ДАННЫЕ === */
-        const CFG = {
-            nick: localStorage.getItem('ps_nick') || 'Боец',
-            skin: localStorage.getItem('ps_skin') || 'classic',
-            gun: localStorage.getItem('ps_gun') || 'rifle',
-            money: parseInt(localStorage.getItem('ps_money')) || 1000,
-            isMobile: false,
-            sens: 0.002
-        };
-
-        const SKINS = {
-            'classic': { color: 0x4caf50, name: 'Солдат', price: 0 },
-            'specops': { color: 0x2196f3, name: 'Спецназ', price: 500 },
-            'mercenary': { color: 0xf44336, name: 'Наемник', price: 1000 },
-            'ninja': { color: 0x111111, name: 'Тень', price: 2000 }
-        };
-
-        const WEAPONS = {
-            'pistol': { name: 'Glock-18', dmg: 15, rate: 400, color: 0x999999, price: 0, scale: [0.1, 0.3, 0.4] },
-            'rifle': { name: 'AK-47', dmg: 25, rate: 150, color: 0x8d6e63, price: 1000, scale: [0.1, 0.3, 0.8] },
-            'sniper': { name: 'AWP', dmg: 80, rate: 1200, color: 0x4caf50, price: 2500, scale: [0.1, 0.4, 1.2] }
-        };
-
-        /* === UI ЛОГИКА === */
-        function updateMoney() {
-            document.getElementById('money-display').innerText = CFG.money;
-            localStorage.setItem('ps_money', CFG.money);
+        if (userIn === "Admin" && passIn === adminPass) {
+            isAdmin = true;
+            alert("Добро пожаловать, Создатель! Включен режим разработчика.");
+            document.getElementById('adminPanel').style.display = 'block';
+        } else {
+            isAdmin = false;
+            document.getElementById('adminPanel').style.display = 'none';
         }
 
-        function selectDevice(type) {
-            CFG.isMobile = (type === 'MOBILE');
-            document.getElementById('device-screen').classList.remove('active');
-            document.getElementById('menu-screen').classList.add('active');
-            if(CFG.isMobile) document.getElementById('mobile-controls').style.display = 'block';
-            updateMoney();
+        currentUser = userIn;
+        document.getElementById('userDisplay').innerText = currentUser;
+        document.getElementById('loginModal').classList.add('hidden');
+        renderGames();
+    }
+
+    function logout() {
+        location.reload();
+    }
+
+    function openSupport() {
+        let msg = prompt("Опишите вашу проблему для службы поддержки:");
+        if (msg) {
+            alert("Ваше сообщение отправлено! Номер тикета: #" + Math.floor(Math.random() * 10000));
         }
+    }
 
-        function openShop(type) {
-            document.getElementById('menu-screen').classList.remove('active');
-            document.getElementById('shop-screen').classList.add('active');
-            const con = document.getElementById('shop-container');
-            const title = document.getElementById('shop-title');
-            con.innerHTML = '';
-            
-            let data = (type === 'skins') ? SKINS : WEAPONS;
-            let current = (type === 'skins') ? CFG.skin : CFG.gun;
-            title.innerText = (type === 'skins') ? 'ГАРДЕРОБ' : 'ОРУЖЕЙНАЯ';
+    // Публикация игры (Только Админ)
+    function publishGame() {
+        const title = document.getElementById('newGameTitle').value;
+        const img = document.getElementById('newGameImg').value;
+        const link = document.getElementById('newGameLink').value;
+        const desc = document.getElementById('newGameDesc').value;
 
-            for(let k in data) {
-                const item = data[k];
-                const el = document.createElement('div');
-                const isSelected = (current === k);
+        if (!title || !link) return alert("Нужно хотя бы название и ссылка!");
+
+        const newGame = {
+            id: Date.now(),
+            title: title,
+            img: img || "https://via.placeholder.com/300x160/000000/ffffff?text=No+Image", // Заглушка, если нет картинки
+            link: link,
+            desc: desc,
+            likes: 0,
+            reviews: []
+        };
+
+        games.unshift(newGame); // Добавить в начало
+        saveGames();
+        
+        // Очистка полей
+        document.getElementById('newGameTitle').value = "";
+        document.getElementById('newGameImg').value = "";
+        document.getElementById('newGameLink').value = "";
+        document.getElementById('newGameDesc').value = "";
+        
+        alert("Игра успешно опубликована в магазине!");
+    }
+
+    // Лайкнуть игру
+    function likeGame(id) {
+        const game = games.find(g => g.id === id);
+        if (game) {
+            game.likes++;
+            saveGames();
+        }
+    }
+
+    // Написать отзыв
+    function addReview(id) {
+        const text = prompt("Напишите ваш отзыв:");
+        if (text) {
+            const game = games.find(g => g.id === id);
+            game.reviews.push({
+                user: currentUser,
+                text: text,
+                reply: ""
+            });
+            saveGames();
+        }
+    }
+
+    // Ответить на отзыв (Только Админ)
+    function replyToReview(gameId, reviewIndex) {
+        if (!isAdmin) return;
+        const text = prompt("Ответ разработчика:");
+        if (text) {
+            games.find(g => g.id === gameId).reviews[reviewIndex].reply = text;
+            saveGames();
+        }
+    }
+
+    // ОТРИСОВКА ИГР
+    function renderGames() {
+        const container = document.getElementById('gamesContainer');
+        container.innerHTML = "";
+
+        games.forEach(game => {
+            // Генерация HTML для отзывов
+            let reviewsHtml = "";
+            game.reviews.forEach((rev, index) => {
+                let replyButton = "";
+                if (isAdmin && !rev.reply) {
+                    replyButton = `<button style="font-size:10px; margin-left:5px;" onclick="replyToReview(${game.id}, ${index})">Ответить</button>`;
+                }
                 
-                el.className = `item-card ${isSelected ? 'selected' : ''}`;
-                el.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div style="width:40px; height:40px; background:#${item.color.toString(16)}; border-radius:5px;"></div>
-                        <div style="text-align:left">
-                            <div style="font-weight:bold; color:#fff">${item.name}</div>
-                            <div style="font-size:12px; color:#aaa">${type==='guns' ? 'Урон: '+item.dmg : 'Скин'}</div>
-                        </div>
+                let adminReplyHtml = rev.reply ? `<div class="admin-reply">👨‍💻 Dev: ${rev.reply}</div>` : "";
+
+                reviewsHtml += `
+                    <div class="review">
+                        <strong>${rev.user}:</strong> ${rev.text} ${replyButton}
+                        ${adminReplyHtml}
                     </div>
-                    <button class="btn" style="width:auto; padding:5px 15px; font-size:12px;">${isSelected ? 'ВЫБРАНО' : 'ВЫБРАТЬ'}</button>
-                `;
-                el.onclick = () => {
-                    if(type === 'skins') { CFG.skin = k; localStorage.setItem('ps_skin', k); }
-                    else { CFG.gun = k; localStorage.setItem('ps_gun', k); }
-                    openShop(type); 
-                };
-                con.appendChild(el);
-            }
-        }
-
-        function toMenu() {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('menu-screen').classList.add('active');
-        }
-        function openLobby() {
-            CFG.nick = document.getElementById('nick-input').value || 'Боец';
-            localStorage.setItem('ps_nick', CFG.nick);
-            document.getElementById('menu-screen').classList.remove('active');
-            document.getElementById('lobby-screen').classList.add('active');
-        }
-
-        /* === 3D МИР (THREE.JS) === */
-        let scene, camera, renderer, clock;
-        let myMesh, enemyMesh;
-        let peer, conn;
-        let input = { x:0, y:0, jump:0, shoot:0 };
-        let myHP = 100;
-        let lastShot = 0;
-
-        function init3D() {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById('game-ui').classList.add('active');
-
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000510, 0.02);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({antialias: true});
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            document.body.appendChild(renderer.domElement);
-            clock = new THREE.Clock();
-
-            // НЕБО
-            const starGeo = new THREE.BufferGeometry();
-            const starCount = 2000;
-            const posArray = new Float32Array(starCount * 3);
-            for(let i=0;i<starCount*3;i++) posArray[i] = (Math.random()-0.5)*400;
-            starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({size:0.5, color:0xffffff}));
-            scene.add(stars);
-
-            // СВЕТ
-            const ambient = new THREE.AmbientLight(0x404040, 0.6); 
-            scene.add(ambient);
-            const sun = new THREE.DirectionalLight(0x00ccff, 0.7);
-            sun.position.set(20, 50, 20); sun.castShadow = true;
-            sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
-            scene.add(sun);
-            const pointL = new THREE.PointLight(0xffaa00, 0.5, 20);
-            pointL.position.set(0,5,0);
-            scene.add(pointL);
-
-            // ПОЛ
-            const gridHelper = new THREE.GridHelper(200, 100, 0x00e5ff, 0x111133);
-            scene.add(gridHelper);
-            const floorPlane = new THREE.Mesh(
-                new THREE.PlaneGeometry(200, 200), 
-                new THREE.MeshPhongMaterial({ color: 0x050510, shininess: 10 })
-            );
-            floorPlane.rotation.x = -Math.PI/2; floorPlane.position.y = -0.1;
-            floorPlane.receiveShadow = true;
-            scene.add(floorPlane);
-
-            // ПРЕПЯТСТВИЯ
-            const boxGeo = new THREE.BoxGeometry(4, 4, 4);
-            const boxMat = new THREE.MeshPhongMaterial({color: 0x334455});
-            for(let i=0; i<20; i++) {
-                const box = new THREE.Mesh(boxGeo, boxMat);
-                box.position.set(Math.random()*80-40, 2, Math.random()*80-40);
-                box.castShadow = true; box.receiveShadow = true;
-                scene.add(box);
-            }
-
-            // ВРАГ
-            enemyMesh = createCharacter(SKINS['classic'].color, 'pistol'); 
-            scene.add(enemyMesh);
-            enemyMesh.position.y = -500; 
-
-            camera.position.set(0, 1.7, 5);
-
-            if(CFG.isMobile) setupMobileControls();
-            else setupPCControls();
-
-            animate();
-        }
-
-        function createCharacter(skinColor, gunType) {
-            const group = new THREE.Group();
-            const mat = new THREE.MeshPhongMaterial({ color: skinColor });
-            
-            // Тело
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.5), mat);
-            body.position.y = 0.6; body.castShadow = true;
-            group.add(body);
-            
-            // Голова
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshPhongMaterial({color: 0xffccaa}));
-            head.position.y = 1.45; head.castShadow = true;
-            
-            // Глаза
-            const eyes = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.1), new THREE.MeshBasicMaterial({color:0x000000}));
-            eyes.position.set(0, 0.05, 0.25); head.add(eyes);
-            group.add(head);
-
-            // Оружие
-            const gData = WEAPONS[gunType] || WEAPONS['pistol'];
-            const gunGeo = new THREE.BoxGeometry(gData.scale[0], gData.scale[1], gData.scale[2]);
-            const gunMat = new THREE.MeshStandardMaterial({color: gData.color});
-            const gun = new THREE.Mesh(gunGeo, gunMat);
-            gun.position.set(0.3, 0.8, 0.4); 
-            group.add(gun);
-            group.gunMesh = gun; 
-
-            return group;
-        }
-
-        /* === СЕТЬ (P2P + COPY LOGIC) === */
-        function hostGame() {
-            peer = new Peer();
-            peer.on('open', id => {
-                // ГЕНЕРАЦИЯ КНОПКИ С КОДОМ
-                const log = document.getElementById('status-log');
-                log.innerHTML = `
-                    <span style="color:#aaa; margin-right:10px;">Твой код:</span>
-                    <button id="copy-btn" class="btn" style="width:auto; padding:5px 15px; font-size:16px; background:#00e5ff; color:#000;" 
-                    onclick="copyRoomCode('${id}')">
-                        ${id} 📋
-                    </button>
                 `;
             });
-            peer.on('connection', c => { conn = c; setupConnection(); });
-        }
 
-        // ФУНКЦИЯ КОПИРОВАНИЯ
-        function copyRoomCode(code) {
-            navigator.clipboard.writeText(code).then(() => {
-                const btn = document.getElementById('copy-btn');
-                const oldText = btn.innerHTML;
-                btn.style.background = '#00ff00';
-                btn.innerText = "СКОПИРОВАНО! ✅";
-                
-                setTimeout(() => {
-                    btn.style.background = '#00e5ff';
-                    btn.innerHTML = oldText;
-                }, 1500);
-            });
-        }
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+                <img src="${game.img}" class="game-img" alt="${game.title}">
+                <div class="game-info">
+                    <h3 class="game-title">${game.title}</h3>
+                    <p class="game-desc">${game.desc}</p>
+                    <a href="${game.link}" class="play-btn" target="_blank">ИГРАТЬ</a>
+                    
+                    <div class="interactions">
+                        <button class="like-btn" onclick="likeGame(${game.id})">👍 ${game.likes}</button>
+                        <button class="like-btn" style="float:right" onclick="addReview(${game.id})">💬 Отзыв</button>
+                    </div>
+                    
+                    <div class="reviews-section">
+                        ${reviewsHtml || "<i>Пока нет отзывов</i>"}
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
 
-        function joinGame() {
-            const id = document.getElementById('join-code').value;
-            if(!id) return alert('Введите ID!');
-            peer = new Peer();
-            peer.on('open', () => { conn = peer.connect(id); setupConnection(); });
-        }
+    // Первый запуск
+    renderGames();
 
-        function setupConnection() {
-            document.getElementById('status-log').innerText = "СВЯЗЬ УСТАНОВЛЕНА! ЗАГРУЗКА...";
-            setTimeout(() => {
-                init3D();
-                conn.send({ type: 'init', skin: CFG.skin, gun: CFG.gun, nick: CFG.nick });
-            }, 1000);
+</script>
 
-            conn.on('data', d => {
-                if(d.type === 'init') {
-                    scene.remove(enemyMesh);
-                    enemyMesh = createCharacter(SKINS[d.skin].color, d.gun);
-                    scene.add(enemyMesh);
-                }
-                if(d.type === 'move') {
-                    enemyMesh.position.set(d.x, d.y, d.z);
-                    enemyMesh.rotation.y = d.ry;
-                }
-                if(d.type === 'shoot') {
-                    createBulletTrace(enemyMesh.position, new THREE.Vector3(d.dx, d.dy, d.dz));
-                }
-                if(d.type === 'hit') {
-                    takeDamage(d.dmg);
-                }
-            });
-        }
-
-        /* === ИГРОВАЯ ЛОГИКА === */
-        let velY = 0;
-        const speed = 8;
-        
-        function takeDamage(amount) {
-            myHP -= amount;
-            document.getElementById('hp-val').style.width = myHP + '%';
-            
-            const overlay = document.getElementById('damage-overlay');
-            overlay.style.opacity = 1;
-            setTimeout(() => overlay.style.opacity = 0, 300);
-
-            if(myHP <= 0) {
-                myHP = 100; 
-                camera.position.set(Math.random()*40-20, 2, Math.random()*40-20);
-            }
-        }
-
-        function shoot() {
-            const now = Date.now();
-            const weapon = WEAPONS[CFG.gun];
-            if(now - lastShot < weapon.rate) return; 
-            lastShot = now;
-
-            const origin = camera.position.clone();
-            origin.y -= 0.2; 
-            const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-            createBulletTrace(origin, dir);
-
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(new THREE.Vector2(0,0), camera); 
-            
-            const intersects = raycaster.intersectObject(enemyMesh, true); 
-            
-            if(intersects.length > 0) {
-                if(conn && conn.open) {
-                    conn.send({ type: 'hit', dmg: weapon.dmg });
-                }
-            }
-
-            if(conn && conn.open) {
-                conn.send({ type: 'shoot', dx: dir.x, dy: dir.y, dz: dir.z });
-            }
-        }
-
-        function createBulletTrace(startPos, dir) {
-            const material = new THREE.LineBasicMaterial({ color: 0xffff00 });
-            const points = [];
-            points.push(startPos.clone().add(new THREE.Vector3(0.2, -0.2, 0))); 
-            points.push(startPos.clone().add(dir.multiplyScalar(50))); 
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const line = new THREE.Line(geometry, material);
-            scene.add(line);
-            setTimeout(() => scene.remove(line), 50);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const dt = clock.getDelta();
-
-            const dir = new THREE.Vector3();
-            const fwd = new THREE.Vector3(0,0,-1).applyEuler(new THREE.Euler(0, camera.rotation.y, 0));
-            const side = new THREE.Vector3(1,0,0).applyEuler(new THREE.Euler(0, camera.rotation.y, 0));
-
-            if(input.y < 0) dir.add(fwd); if(input.y > 0) dir.sub(fwd);
-            if(input.x < 0) dir.sub(side); if(input.x > 0) dir.add(side);
-
-            camera.position.add(dir.normalize().multiplyScalar(speed * dt));
-
-            if(input.jump && camera.position.y <= 1.75) { velY = 12; input.jump=false; }
-            velY -= 30 * dt; 
-            camera.position.y += velY * dt;
-            if(camera.position.y < 1.7) { camera.position.y = 1.7; velY = 0; }
-
-            if(input.shoot) shoot();
-
-            if(conn && conn.open) {
-                conn.send({
-                    type: 'move',
-                    x: camera.position.x, 
-                    y: camera.position.y - 1.6, 
-                    z: camera.position.z,
-                    ry: camera.rotation.y + Math.PI 
-                });
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        /* === УПРАВЛЕНИЕ === */
-        function setupPCControls() {
-            document.body.onclick = () => document.body.requestPointerLock();
-            document.body.onmousedown = () => input.shoot = true;
-            document.body.onmouseup = () => input.shoot = false;
-            
-            document.addEventListener('mousemove', e => {
-                if(document.pointerLockElement) {
-                    camera.rotation.y -= e.movementX * CFG.sens;
-                    camera.rotation.x -= e.movementY * CFG.sens;
-                    camera.rotation.x = Math.max(-1.5, Math.min(1.5, camera.rotation.x));
-                }
-            });
-            document.addEventListener('keydown', e => {
-                if(e.code=='KeyW') input.y=-1; if(e.code=='KeyS') input.y=1;
-                if(e.code=='KeyA') input.x=-1; if(e.code=='KeyD') input.x=1;
-                if(e.code=='Space') input.jump=true;
-            });
-            document.addEventListener('keyup', e => {
-                if(['KeyW','KeyS'].includes(e.code)) input.y=0;
-                if(['KeyA','KeyD'].includes(e.code)) input.x=0;
-            });
-        }
-
-        function setupMobileControls() {
-            const stick = document.getElementById('stick-zone');
-            const knob = document.getElementById('stick-knob');
-            let startT;
-
-            stick.addEventListener('touchstart', e => startT = e.changedTouches[0]);
-            stick.addEventListener('touchmove', e => {
-                e.preventDefault();
-                const t = e.changedTouches[0];
-                let dx = t.clientX - startT.clientX;
-                let dy = t.clientY - startT.clientY;
-                if(Math.sqrt(dx*dx+dy*dy) > 40) { dx*=0.8; dy*=0.8; }
-                knob.style.transform = `translate(${dx}px, ${dy}px)`;
-                input.x = dx/40; input.y = dy/40;
-            });
-            stick.addEventListener('touchend', () => { knob.style.transform=''; input.x=0; input.y=0; });
-
-            let lastX;
-            document.addEventListener('touchstart', e => { if(e.touches[0].clientX > window.innerWidth/2) lastX = e.touches[0].clientX; });
-            document.addEventListener('touchmove', e => {
-                const t = e.touches[0];
-                if(t.clientX > window.innerWidth/2) {
-                    camera.rotation.y -= (t.clientX - lastX) * 0.005;
-                    lastX = t.clientX;
-                }
-            });
-            
-            const btnShoot = document.getElementById('btn-shoot');
-            btnShoot.addEventListener('touchstart', (e)=>{ e.preventDefault(); input.shoot=true; btnShoot.style.background='rgba(255,0,0,0.5)'; });
-            btnShoot.addEventListener('touchend', (e)=>{ e.preventDefault(); input.shoot=false; btnShoot.style.background='rgba(255,50,50,0.2)'; });
-            
-            document.getElementById('btn-jump').addEventListener('touchstart', (e)=>{ e.preventDefault(); input.jump=true; });
-        }
-    </script>
 </body>
 </html>
