@@ -3,350 +3,460 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyStrike: EVOLUTION</title>
+    <title>PolyStrike: EVOLUTION 2.0</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Rubik:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Rajdhani:wght@500;700&display=swap');
         
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Rubik', sans-serif; user-select: none; color: white; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Rajdhani', sans-serif; user-select: none; color: white; }
         
         /* === UI ЭЛЕМЕНТЫ === */
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; z-index: 10; align-items: center; justify-content: center; background: radial-gradient(circle, #1a202c 0%, #000 100%); }
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; z-index: 10; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1a202c 0%, #000 100%); }
         .active { display: flex; }
 
         .panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 40px; border-radius: 20px; text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5); width: 90%; max-width: 400px;
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            padding: 30px; border-radius: 15px; text-align: center;
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.1); width: 90%; max-width: 450px;
+            position: relative;
         }
 
-        h1 { font-family: 'Orbitron'; font-size: 40px; margin-bottom: 30px; color: #00e5ff; text-transform: uppercase; letter-spacing: 3px; text-shadow: 0 0 20px rgba(0, 229, 255, 0.5); }
+        h1 { font-family: 'Orbitron'; font-size: 42px; margin: 0 0 20px 0; color: #00e5ff; text-transform: uppercase; letter-spacing: 4px; text-shadow: 0 0 15px rgba(0, 229, 255, 0.8); }
+        h2 { font-family: 'Orbitron'; color: #fff; letter-spacing: 2px; }
         
         .btn {
-            background: linear-gradient(135deg, #00e5ff, #0077ff);
-            border: none; padding: 15px 30px; margin: 10px; color: #fff;
-            font-family: 'Orbitron'; font-size: 16px; font-weight: bold;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            cursor: pointer; transition: 0.2s; width: 100%; letter-spacing: 1px;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            border: none; padding: 12px 25px; margin: 8px; color: #fff;
+            font-family: 'Orbitron'; font-size: 14px; font-weight: bold;
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            cursor: pointer; transition: 0.2s; width: 100%; text-transform: uppercase;
         }
-        .btn:active { transform: scale(0.95); }
-        .btn-sec { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); }
-        .btn-big { height: 80px; font-size: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn:active { transform: scale(0.96); }
+        .btn-sec { background: transparent; border: 1px solid rgba(255,255,255,0.3); }
+        .btn-green { background: linear-gradient(90deg, #11998e, #38ef7d); }
 
+        .item-card {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;
+            transition: 0.2s;
+        }
+        .item-card.selected { border-color: #00e5ff; background: rgba(0, 229, 255, 0.1); }
+        
         /* ИГРОВОЙ ИНТЕРФЕЙС */
         #game-ui { pointer-events: none; background: transparent; justify-content: flex-start; }
         
         .top-hud { 
-            position: absolute; top: 20px; width: 90%; display: flex; justify-content: space-between; 
-            background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 15px; border: 1px solid #333;
+            position: absolute; top: 15px; width: 92%; display: flex; justify-content: space-between; align-items: center;
         }
-        .hp-bar { width: 150px; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin-top: 5px; }
-        .hp-fill { width: 100%; height: 100%; background: #0f0; transition: 0.2s; }
+        .stat-box { background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 8px; border-left: 3px solid #00e5ff; }
 
-        #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; background: #0f0; border-radius: 50%; box-shadow: 0 0 5px #0f0; }
+        .hp-bar-bg { width: 200px; height: 12px; background: #333; transform: skewX(-20deg); overflow: hidden; border: 1px solid #555; }
+        .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff3333, #ff8800); transition: 0.3s; }
+
+        #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; opacity: 0.8; }
+        #crosshair::before, #crosshair::after { content:''; position: absolute; background: #0f0; }
+        #crosshair::before { width: 2px; height: 10px; left: 9px; top: 5px; }
+        #crosshair::after { width: 10px; height: 2px; top: 9px; left: 5px; }
+
+        #ammo-display { position: absolute; bottom: 30px; right: 30px; font-family: 'Orbitron'; font-size: 30px; color: #00e5ff; text-shadow: 0 0 10px #00e5ff; }
 
         /* МОБИЛЬНОЕ УПРАВЛЕНИЕ */
         .controls { position: absolute; width: 100%; height: 100%; pointer-events: none; display: none; }
-        .touch-btn { position: absolute; pointer-events: auto; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; backdrop-filter: blur(5px); }
-        .touch-btn:active { background: rgba(255,255,255,0.4); border-color: #fff; }
-
-        #stick-zone { bottom: 50px; left: 50px; width: 140px; height: 140px; }
-        #stick-knob { width: 50px; height: 50px; background: rgba(255,255,255,0.8); position: absolute; top: 45px; left: 45px; border-radius: 50%; pointer-events: none; }
+        .touch-btn { position: absolute; pointer-events: auto; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; backdrop-filter: blur(4px); }
+        #stick-zone { bottom: 40px; left: 40px; width: 120px; height: 120px; }
+        #stick-knob { width: 40px; height: 40px; background: rgba(255,255,255,0.8); position: absolute; top: 40px; left: 40px; border-radius: 50%; pointer-events: none; box-shadow: 0 0 10px white; }
+        
+        #damage-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, transparent 50%, rgba(255,0,0,0.5) 100%); opacity: 0; transition: 0.2s; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="device-screen" class="screen active">
-        <h1>PolyStrike</h1>
+        <h1>PolyStrike<br><span style="font-size:20px; color:#fff">EVOLUTION</span></h1>
         <div class="panel">
-            <h3>ВЫБЕРИ УСТРОЙСТВО</h3>
-            <button class="btn btn-big" onclick="selectDevice('PC')">💻 КОМПЬЮТЕР</button>
-            <button class="btn btn-big" onclick="selectDevice('MOBILE')">📱 ТЕЛЕФОН</button>
+            <h3>ВЫБЕРИ УПРАВЛЕНИЕ</h3>
+            <button class="btn" style="height:60px; font-size:18px;" onclick="selectDevice('PC')">💻 PC (Клавиатура)</button>
+            <button class="btn" style="height:60px; font-size:18px;" onclick="selectDevice('MOBILE')">📱 ТЕЛЕФОН (Сенсор)</button>
         </div>
     </div>
 
     <div id="menu-screen" class="screen">
-        <div class="top-hud" style="position:relative; width:300px; margin-bottom:20px;">
-            <div id="profile-display">👤 Игрок</div>
-            <div style="color:#ffd700">💰 <span id="money-display">0</span></div>
+        <div class="top-hud" style="justify-content: center;">
+            <div class="stat-box">💰 <span id="money-display">1000</span></div>
         </div>
         
         <div class="panel">
-            <input type="text" id="nick-input" placeholder="Введи ник" style="background:transparent; border:none; border-bottom:1px solid #fff; color:white; text-align:center; font-size:20px; width:80%; margin-bottom:20px;">
+            <input type="text" id="nick-input" placeholder="Твой Никнейм" style="background:transparent; border:none; border-bottom:2px solid #00e5ff; color:white; text-align:center; font-family:'Orbitron'; font-size:20px; width:80%; margin-bottom:20px; outline:none;">
+            
             <button class="btn" onclick="openLobby()">⚔️ ИГРАТЬ ОНЛАЙН</button>
-            <button class="btn btn-sec" onclick="openShop()">🛒 СКИНЫ</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; width:100%;">
+                <button class="btn btn-sec" onclick="openShop('skins')">👕 СКИНЫ</button>
+                <button class="btn btn-sec" onclick="openShop('guns')">🔫 ОРУЖИЕ</button>
+            </div>
         </div>
     </div>
 
     <div id="shop-screen" class="screen">
-        <h2>ГАРДЕРОБ</h2>
-        <div class="panel" id="shop-container" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
-        <button class="btn btn-sec" style="margin-top:20px; width:200px;" onclick="toMenu()">НАЗАД</button>
+        <h2 id="shop-title">МАГАЗИН</h2>
+        <div class="panel" style="width:95%; max-width:600px; height:60%; overflow-y:auto;" id="shop-container">
+            </div>
+        <button class="btn btn-sec" style="width:200px; margin-top:20px;" onclick="toMenu()">НАЗАД</button>
     </div>
 
     <div id="lobby-screen" class="screen">
         <div class="panel">
             <h2>СЕТЕВАЯ ИГРА</h2>
-            <button class="btn" onclick="hostGame()">СОЗДАТЬ ИГРУ (HOST)</button>
-            <p style="color:#888">- или -</p>
-            <input id="join-code" placeholder="Вставь ID друга" style="width:100%; padding:10px; text-align:center;">
-            <button class="btn" onclick="joinGame()">ПОДКЛЮЧИТЬСЯ</button>
-            <div id="status-log" style="color:#0ff; margin-top:15px; font-size:12px;"></div>
+            <p style="color:#aaa; font-size:12px;">PeerJS P2P System</p>
+            
+            <button class="btn btn-green" onclick="hostGame()">СОЗДАТЬ КОМНАТУ (HOST)</button>
+            
+            <div style="margin: 20px 0; border-top:1px solid #333; padding-top:20px;">
+                <input id="join-code" placeholder="Вставь ID друга сюда" style="width:100%; padding:15px; text-align:center; background:#000; border:1px solid #444; color:#fff; font-family:'Orbitron'; margin-bottom:10px;">
+                <button class="btn" onclick="joinGame()">ПОДКЛЮЧИТЬСЯ</button>
+            </div>
+            
+            <div id="status-log" style="color:#0ff; height:30px; font-size:14px; font-weight:bold;"></div>
             <button class="btn btn-sec" onclick="toMenu()">ОТМЕНА</button>
         </div>
     </div>
 
     <div id="game-ui" class="screen">
+        <div id="damage-overlay"></div>
         <div class="top-hud">
             <div>
-                <div style="font-size:12px; color:#aaa">ЗДОРОВЬЕ</div>
-                <div class="hp-bar"><div class="hp-fill" id="hp-val"></div></div>
+                <div style="font-size:14px; color:#00e5ff; font-weight:bold; margin-bottom:5px;">ЗДОРОВЬЕ</div>
+                <div class="hp-bar-bg"><div class="hp-fill" id="hp-val"></div></div>
             </div>
-            <div style="text-align:right">
-                <div style="font-size:12px; color:#aaa">СЧЕТ</div>
-                <span id="score-text" style="font-size:20px; font-weight:bold;">0 : 0</span>
+            <div class="stat-box" style="text-align:right">
+                <span id="score-text" style="font-size:24px; font-weight:bold; font-family:'Orbitron'">0 : 0</span>
             </div>
         </div>
+
         <div id="crosshair"></div>
+        <div id="ammo-display">30 / ∞</div>
         
         <div id="mobile-controls" class="controls">
             <div id="stick-zone" class="touch-btn"><div id="stick-knob"></div></div>
-            <div id="btn-shoot" class="touch-btn" style="bottom:80px; right:40px; width:70px; height:70px; background:rgba(255,50,50,0.3);">🔥</div>
-            <div id="btn-jump" class="touch-btn" style="bottom:170px; right:20px; width:50px; height:50px;">⬆️</div>
+            <div id="btn-shoot" class="touch-btn" style="bottom:80px; right:30px; width:70px; height:70px; background:rgba(255,50,50,0.2); border-color:#f00; display:flex; justify-content:center; align-items:center; font-size:30px;">🔥</div>
+            <div id="btn-jump" class="touch-btn" style="bottom:170px; right:40px; width:50px; height:50px; display:flex; justify-content:center; align-items:center;">⬆️</div>
         </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 
     <script>
-        /* === НАСТРОЙКИ === */
+        /* === КОНФИГУРАЦИЯ И ДАННЫЕ === */
         const CFG = {
-            nick: localStorage.getItem('ps_nick') || 'Soldier',
+            nick: localStorage.getItem('ps_nick') || 'Боец',
             skin: localStorage.getItem('ps_skin') || 'classic',
-            isMobile: false
+            gun: localStorage.getItem('ps_gun') || 'rifle',
+            money: parseInt(localStorage.getItem('ps_money')) || 1000,
+            isMobile: false,
+            sens: 0.002
         };
 
         const SKINS = {
-            'classic': { color: 0x4caf50, name: 'Классик' },
-            'blue': { color: 0x2196f3, name: 'Спецназ' },
-            'red': { color: 0xf44336, name: 'Наемник' },
-            'dark': { color: 0x222222, name: 'Ниндзя' }
+            'classic': { color: 0x4caf50, name: 'Солдат', price: 0 },
+            'specops': { color: 0x2196f3, name: 'Спецназ', price: 500 },
+            'mercenary': { color: 0xf44336, name: 'Наемник', price: 1000 },
+            'ninja': { color: 0x111111, name: 'Тень', price: 2000 }
         };
 
-        /* === 1. ГЕНЕРАТОР ТЕКСТУР (Лица и Мир) === */
-        function createFaceTexture() {
-            const cvs = document.createElement('canvas');
-            cvs.width = 128; cvs.height = 128;
-            const ctx = cvs.getContext('2d');
-            
-            // Фон (кожа)
-            ctx.fillStyle = '#ffccaa'; 
-            ctx.fillRect(0,0,128,128);
-            
-            // Глаза
-            ctx.fillStyle = '#000';
-            ctx.fillRect(30, 40, 20, 20); // Левый
-            ctx.fillRect(78, 40, 20, 20); // Правый
-            
-            // Рот
-            ctx.fillRect(40, 90, 48, 10);
+        const WEAPONS = {
+            'pistol': { name: 'Glock-18', dmg: 15, rate: 400, color: 0x999999, price: 0, scale: [0.1, 0.3, 0.4] },
+            'rifle': { name: 'AK-47', dmg: 25, rate: 150, color: 0x8d6e63, price: 1000, scale: [0.1, 0.3, 0.8] },
+            'sniper': { name: 'AWP', dmg: 80, rate: 1200, color: 0x4caf50, price: 2500, scale: [0.1, 0.4, 1.2] }
+        };
 
-            const tex = new THREE.CanvasTexture(cvs);
-            tex.magFilter = THREE.NearestFilter; // Пиксельный стиль
-            return tex;
+        /* === UI ЛОГИКА === */
+        function updateMoney() {
+            document.getElementById('money-display').innerText = CFG.money;
+            localStorage.setItem('ps_money', CFG.money);
         }
 
-        function createGridTexture() {
-            const cvs = document.createElement('canvas');
-            cvs.width = 256; cvs.height = 256;
-            const ctx = cvs.getContext('2d');
-            ctx.fillStyle = '#111'; ctx.fillRect(0,0,256,256);
-            ctx.strokeStyle = '#00ccff'; ctx.lineWidth = 2;
-            ctx.strokeRect(0,0,256,256); // Рамка
-            ctx.fillStyle = 'rgba(0, 204, 255, 0.1)'; ctx.fillRect(10,10,236,236);
-            
-            const tex = new THREE.CanvasTexture(cvs);
-            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-            tex.repeat.set(50, 50);
-            return tex;
-        }
-
-        /* === 2. ИНТЕРФЕЙС === */
         function selectDevice(type) {
             CFG.isMobile = (type === 'MOBILE');
             document.getElementById('device-screen').classList.remove('active');
             document.getElementById('menu-screen').classList.add('active');
-            
-            if(CFG.isMobile) {
-                document.getElementById('mobile-controls').style.display = 'block';
-            }
+            if(CFG.isMobile) document.getElementById('mobile-controls').style.display = 'block';
+            updateMoney();
         }
 
-        function openShop() {
+        function openShop(type) {
             document.getElementById('menu-screen').classList.remove('active');
             document.getElementById('shop-screen').classList.add('active');
             const con = document.getElementById('shop-container');
+            const title = document.getElementById('shop-title');
             con.innerHTML = '';
-            for(let k in SKINS) {
-                const s = SKINS[k];
-                const btn = document.createElement('div');
-                btn.className = 'btn btn-sec';
-                btn.style.background = (CFG.skin === k) ? 'rgba(0,255,0,0.2)' : '';
-                btn.innerHTML = `<div style="width:30px;height:30px;background:#${s.color.toString(16)};margin:0 auto"></div>${s.name}`;
-                btn.onclick = () => { CFG.skin = k; localStorage.setItem('ps_skin', k); openShop(); };
-                con.appendChild(btn);
+            
+            let data = (type === 'skins') ? SKINS : WEAPONS;
+            let current = (type === 'skins') ? CFG.skin : CFG.gun;
+            title.innerText = (type === 'skins') ? 'ГАРДЕРОБ' : 'ОРУЖЕЙНАЯ';
+
+            for(let k in data) {
+                const item = data[k];
+                const el = document.createElement('div');
+                const isOwned = true; // Для простоты всё доступно, но можно добавить проверку покупок
+                const isSelected = (current === k);
+                
+                el.className = `item-card ${isSelected ? 'selected' : ''}`;
+                el.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:40px; height:40px; background:#${item.color.toString(16)}; border-radius:5px;"></div>
+                        <div style="text-align:left">
+                            <div style="font-weight:bold; color:#fff">${item.name}</div>
+                            <div style="font-size:12px; color:#aaa">${type==='guns' ? 'Урон: '+item.dmg : 'Скин'}</div>
+                        </div>
+                    </div>
+                    <button class="btn" style="width:auto; padding:5px 15px; font-size:12px;">${isSelected ? 'ВЫБРАНО' : 'ВЫБРАТЬ'}</button>
+                `;
+                el.onclick = () => {
+                    if(type === 'skins') { CFG.skin = k; localStorage.setItem('ps_skin', k); }
+                    else { CFG.gun = k; localStorage.setItem('ps_gun', k); }
+                    openShop(type); // Обновить
+                };
+                con.appendChild(el);
             }
         }
+
         function toMenu() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('menu-screen').classList.add('active');
         }
         function openLobby() {
-            CFG.nick = document.getElementById('nick-input').value || 'Soldier';
+            CFG.nick = document.getElementById('nick-input').value || 'Боец';
             localStorage.setItem('ps_nick', CFG.nick);
             document.getElementById('menu-screen').classList.remove('active');
             document.getElementById('lobby-screen').classList.add('active');
         }
 
-        /* === 3. ИГРОВОЙ МИР (THREE.JS) === */
+        /* === 3D МИР (THREE.JS) === */
         let scene, camera, renderer, clock;
         let myMesh, enemyMesh;
-        let peer, conn, myId;
+        let projectiles = [];
+        let peer, conn;
         let input = { x:0, y:0, jump:0, shoot:0 };
+        let myHP = 100;
+        let lastShot = 0;
 
         function init3D() {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('game-ui').classList.add('active');
 
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x050a10);
-            scene.fog = new THREE.Fog(0x050a10, 10, 60);
+            scene.fog = new THREE.FogExp2(0x000510, 0.02);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
             renderer = new THREE.WebGLRenderer({antialias: true});
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.body.appendChild(renderer.domElement);
             clock = new THREE.Clock();
 
-            // === УЛУЧШЕННЫЙ МИР ===
-            // Свет
-            const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-            scene.add(hemi);
-            const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+            // НЕБО (Звезды)
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 2000;
+            const posArray = new Float32Array(starCount * 3);
+            for(let i=0;i<starCount*3;i++) posArray[i] = (Math.random()-0.5)*400;
+            starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({size:0.5, color:0xffffff}));
+            scene.add(stars);
+
+            // СВЕТ
+            const ambient = new THREE.AmbientLight(0x404040, 0.6); // Мягкий свет
+            scene.add(ambient);
+            const sun = new THREE.DirectionalLight(0x00ccff, 0.7);
             sun.position.set(20, 50, 20); sun.castShadow = true;
+            sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
             scene.add(sun);
+            const pointL = new THREE.PointLight(0xffaa00, 0.5, 20); // Теплый свет от центра
+            pointL.position.set(0,5,0);
+            scene.add(pointL);
 
-            // Пол с текстурой сетки
-            const gridTex = createGridTexture();
-            const floor = new THREE.Mesh(
+            // ПОЛ (Неоновая сетка)
+            const gridHelper = new THREE.GridHelper(200, 100, 0x00e5ff, 0x111133);
+            scene.add(gridHelper);
+            const floorPlane = new THREE.Mesh(
                 new THREE.PlaneGeometry(200, 200), 
-                new THREE.MeshPhongMaterial({ map: gridTex })
+                new THREE.MeshPhongMaterial({ color: 0x050510, shininess: 10 })
             );
-            floor.rotation.x = -Math.PI/2;
-            floor.receiveShadow = true;
-            scene.add(floor);
+            floorPlane.rotation.x = -Math.PI/2; floorPlane.position.y = -0.1;
+            floorPlane.receiveShadow = true;
+            scene.add(floorPlane);
 
-            // Декорации (Деревья/Колонны)
-            const pillarGeo = new THREE.CylinderGeometry(1, 1, 6, 8);
-            const pillarMat = new THREE.MeshPhongMaterial({ color: 0x334455 });
-            for(let i=0; i<15; i++) {
-                const m = new THREE.Mesh(pillarGeo, pillarMat);
-                m.position.set(Math.random()*60-30, 3, Math.random()*60-30);
-                m.castShadow = true; scene.add(m);
+            // ПРЕПЯТСТВИЯ
+            const boxGeo = new THREE.BoxGeometry(4, 4, 4);
+            const boxMat = new THREE.MeshPhongMaterial({color: 0x334455});
+            for(let i=0; i<20; i++) {
+                const box = new THREE.Mesh(boxGeo, boxMat);
+                box.position.set(Math.random()*80-40, 2, Math.random()*80-40);
+                box.castShadow = true; box.receiveShadow = true;
+                scene.add(box);
             }
 
-            // Игрок (Враг)
-            enemyMesh = createPlayer();
+            // ВРАГ
+            enemyMesh = createCharacter(SKINS['classic'].color, 'pistol'); // Временно дефолт
             scene.add(enemyMesh);
-            enemyMesh.position.y = -100; // Спрятать до подключения
+            enemyMesh.position.y = -500; // Спрятать
 
-            camera.position.set(0, 1.7, 0);
+            camera.position.set(0, 1.7, 5);
 
-            if(CFG.isMobile) setupMobile();
-            else setupPC();
+            if(CFG.isMobile) setupMobileControls();
+            else setupPCControls();
 
             animate();
         }
 
-        function createPlayer() {
-            const root = new THREE.Group();
-            const color = SKINS['classic'].color; // Дефолтный
-            const mat = new THREE.MeshPhongMaterial({ color: color });
+        function createCharacter(skinColor, gunType) {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshPhongMaterial({ color: skinColor });
             
             // Тело
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.4), mat);
-            body.position.y = 0.9; root.add(body);
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.5), mat);
+            body.position.y = 0.6; body.castShadow = true;
+            group.add(body);
             
-            // ГОЛОВА С ЛИЦОМ
-            const faceTex = createFaceTexture();
-            const headMat = [
-                new THREE.MeshPhongMaterial({color: 0xffccaa}), // право
-                new THREE.MeshPhongMaterial({color: 0xffccaa}), // лево
-                new THREE.MeshPhongMaterial({color: 0xffccaa}), // верх
-                new THREE.MeshPhongMaterial({color: 0xffccaa}), // низ
-                new THREE.MeshPhongMaterial({map: faceTex}),    // ЛИЦО (Перед)
-                new THREE.MeshPhongMaterial({color: 0xffccaa})  // зад
-            ];
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), headMat);
-            head.position.y = 1.6; root.add(head);
+            // Голова
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshPhongMaterial({color: 0xffccaa}));
+            head.position.y = 1.45; head.castShadow = true;
+            
+            // Глаза (визуал)
+            const eyes = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.1), new THREE.MeshBasicMaterial({color:0x000000}));
+            eyes.position.set(0, 0.05, 0.25); head.add(eyes);
+            group.add(head);
 
-            // Руки
-            const arm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.7, 0.2), mat);
-            arm.position.set(0.4, 0.9, 0); root.add(arm);
-            const arm2 = arm.clone(); arm2.position.set(-0.4, 0.9, 0); root.add(arm2);
+            // Оружие
+            const gData = WEAPONS[gunType] || WEAPONS['pistol'];
+            const gunGeo = new THREE.BoxGeometry(gData.scale[0], gData.scale[1], gData.scale[2]);
+            const gunMat = new THREE.MeshStandardMaterial({color: gData.color});
+            const gun = new THREE.Mesh(gunGeo, gunMat);
+            gun.position.set(0.3, 0.8, 0.4); 
+            group.add(gun);
+            group.gunMesh = gun; // Ссылка для эффектов
 
-            return root;
+            return group;
         }
 
-        /* === 4. СЕТЬ (P2P) === */
+        /* === СЕТЬ (P2P + LOGIC) === */
         function hostGame() {
             peer = new Peer();
             peer.on('open', id => {
-                document.getElementById('status-log').innerHTML = `Твой код: <b style="font-size:16px; color:white">${id}</b>`;
+                document.getElementById('status-log').innerHTML = `КОД КОМНАТЫ: <span style="color:#fff; background:#333; padding:5px;">${id}</span>`;
             });
-            peer.on('connection', c => { conn = c; startNet(); });
+            peer.on('connection', c => { conn = c; setupConnection(); });
         }
         function joinGame() {
             const id = document.getElementById('join-code').value;
-            if(!id) return;
+            if(!id) return alert('Введите ID!');
             peer = new Peer();
-            peer.on('open', () => { conn = peer.connect(id); startNet(); });
+            peer.on('open', () => { conn = peer.connect(id); setupConnection(); });
         }
 
-        function startNet() {
-            document.getElementById('status-log').innerText = "ПОДКЛЮЧЕНО!";
+        function setupConnection() {
+            document.getElementById('status-log').innerText = "СВЯЗЬ УСТАНОВЛЕНА! ЗАГРУЗКА...";
             setTimeout(() => {
                 init3D();
-                // Отправить мой скин
-                conn.send({ type: 'init', skin: CFG.skin, nick: CFG.nick });
+                conn.send({ type: 'init', skin: CFG.skin, gun: CFG.gun, nick: CFG.nick });
             }, 1000);
 
             conn.on('data', d => {
+                // Инициализация врага
                 if(d.type === 'init') {
-                    // Применить скин врага
-                    const s = SKINS[d.skin];
-                    enemyMesh.children[0].material.color.setHex(s.color); // Тело
-                    enemyMesh.children[2].material.color.setHex(s.color); // Руки
+                    scene.remove(enemyMesh); // Удаляем старый
+                    enemyMesh = createCharacter(SKINS[d.skin].color, d.gun);
+                    scene.add(enemyMesh);
                 }
+                // Движение врага
                 if(d.type === 'move') {
                     enemyMesh.position.set(d.x, d.y, d.z);
                     enemyMesh.rotation.y = d.ry;
                 }
+                // Враг стреляет (визуал)
+                if(d.type === 'shoot') {
+                    createBulletTrace(enemyMesh.position, new THREE.Vector3(d.dx, d.dy, d.dz));
+                }
+                // В меня попали
+                if(d.type === 'hit') {
+                    takeDamage(d.dmg);
+                }
             });
         }
 
-        /* === 5. ФИЗИКА И ЦИКЛ === */
+        /* === ИГРОВАЯ ЛОГИКА === */
         let velY = 0;
-        let canJump = false;
+        const speed = 8;
+        
+        function takeDamage(amount) {
+            myHP -= amount;
+            document.getElementById('hp-val').style.width = myHP + '%';
+            
+            // Эффект крови
+            const overlay = document.getElementById('damage-overlay');
+            overlay.style.opacity = 1;
+            setTimeout(() => overlay.style.opacity = 0, 300);
+
+            if(myHP <= 0) {
+                myHP = 100; // Респаун
+                camera.position.set(Math.random()*40-20, 2, Math.random()*40-20);
+                // Можно добавить счетчик смертей здесь
+            }
+        }
+
+        function shoot() {
+            const now = Date.now();
+            const weapon = WEAPONS[CFG.gun];
+            if(now - lastShot < weapon.rate) return; // Скорострельность
+            lastShot = now;
+
+            // 1. Визуал трассера
+            const origin = camera.position.clone();
+            origin.y -= 0.2; // Чуть ниже глаз
+            const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            createBulletTrace(origin, dir);
+
+            // 2. Логика попадания (Raycast)
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(0,0), camera); // Центр экрана
+            
+            const intersects = raycaster.intersectObject(enemyMesh, true); // Проверка попадания во врага
+            
+            if(intersects.length > 0) {
+                // ПОПАЛ!
+                console.log("HIT!");
+                if(conn && conn.open) {
+                    conn.send({ type: 'hit', dmg: weapon.dmg });
+                    // Визуал партиклов попадания можно добавить тут
+                }
+            }
+
+            // 3. Отправка выстрела врагу (чтобы он видел трассер)
+            if(conn && conn.open) {
+                conn.send({ type: 'shoot', dx: dir.x, dy: dir.y, dz: dir.z });
+            }
+        }
+
+        function createBulletTrace(startPos, dir) {
+            // Линия выстрела
+            const material = new THREE.LineBasicMaterial({ color: 0xffff00 });
+            const points = [];
+            points.push(startPos.clone().add(new THREE.Vector3(0.2, -0.2, 0))); // От пушки
+            points.push(startPos.clone().add(dir.multiplyScalar(50))); // Вдаль
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            
+            // Исчезновение линии
+            setTimeout(() => scene.remove(line), 50);
+        }
 
         function animate() {
             requestAnimationFrame(animate);
             const dt = clock.getDelta();
 
-            // Движение
-            const speed = 6;
+            // ФИЗИКА ИГРОКА
             const dir = new THREE.Vector3();
             const fwd = new THREE.Vector3(0,0,-1).applyEuler(new THREE.Euler(0, camera.rotation.y, 0));
             const side = new THREE.Vector3(1,0,0).applyEuler(new THREE.Euler(0, camera.rotation.y, 0));
@@ -356,34 +466,40 @@
 
             camera.position.add(dir.normalize().multiplyScalar(speed * dt));
 
-            // Прыжок/Гравитация
-            if(input.jump && canJump) { velY = 10; canJump = false; input.jump = false; }
-            velY -= 25 * dt;
+            // Прыжок
+            if(input.jump && camera.position.y <= 1.75) { velY = 12; input.jump=false; }
+            velY -= 30 * dt; // Гравитация
             camera.position.y += velY * dt;
+            if(camera.position.y < 1.7) { camera.position.y = 1.7; velY = 0; }
 
-            if(camera.position.y < 1.7) { camera.position.y = 1.7; velY = 0; canJump = true; }
+            // Стрельба (для мобайла или авто)
+            if(input.shoot) shoot();
 
-            // Сеть
+            // Отправка позиции в сеть
             if(conn && conn.open) {
                 conn.send({
                     type: 'move',
                     x: camera.position.x, 
-                    y: camera.position.y - 1.7, // Коррекция модели
+                    y: camera.position.y - 1.6, // Коррекция модели
                     z: camera.position.z,
-                    ry: camera.rotation.y + Math.PI // Разворот лица
+                    ry: camera.rotation.y + Math.PI 
                 });
             }
 
             renderer.render(scene, camera);
         }
 
-        /* === 6. УПРАВЛЕНИЕ === */
-        function setupPC() {
+        /* === УПРАВЛЕНИЕ === */
+        function setupPCControls() {
             document.body.onclick = () => document.body.requestPointerLock();
+            document.body.onmousedown = () => input.shoot = true;
+            document.body.onmouseup = () => input.shoot = false;
+            
             document.addEventListener('mousemove', e => {
                 if(document.pointerLockElement) {
-                    camera.rotation.y -= e.movementX * 0.002;
-                    camera.rotation.x -= e.movementY * 0.002;
+                    camera.rotation.y -= e.movementX * CFG.sens;
+                    camera.rotation.x -= e.movementY * CFG.sens;
+                    camera.rotation.x = Math.max(-1.5, Math.min(1.5, camera.rotation.x));
                 }
             });
             document.addEventListener('keydown', e => {
@@ -397,7 +513,7 @@
             });
         }
 
-        function setupMobile() {
+        function setupMobileControls() {
             const stick = document.getElementById('stick-zone');
             const knob = document.getElementById('stick-knob');
             let startT;
@@ -408,13 +524,13 @@
                 const t = e.changedTouches[0];
                 let dx = t.clientX - startT.clientX;
                 let dy = t.clientY - startT.clientY;
-                if(Math.sqrt(dx*dx+dy*dy) > 40) { dx*=0.8; dy*=0.8; } // Ограничение
+                if(Math.sqrt(dx*dx+dy*dy) > 40) { dx*=0.8; dy*=0.8; }
                 knob.style.transform = `translate(${dx}px, ${dy}px)`;
                 input.x = dx/40; input.y = dy/40;
             });
             stick.addEventListener('touchend', () => { knob.style.transform=''; input.x=0; input.y=0; });
 
-            // Камера
+            // Вращение камеры
             let lastX;
             document.addEventListener('touchstart', e => { if(e.touches[0].clientX > window.innerWidth/2) lastX = e.touches[0].clientX; });
             document.addEventListener('touchmove', e => {
@@ -424,6 +540,11 @@
                     lastX = t.clientX;
                 }
             });
+            
+            const btnShoot = document.getElementById('btn-shoot');
+            btnShoot.addEventListener('touchstart', (e)=>{ e.preventDefault(); input.shoot=true; btnShoot.style.background='rgba(255,0,0,0.5)'; });
+            btnShoot.addEventListener('touchend', (e)=>{ e.preventDefault(); input.shoot=false; btnShoot.style.background='rgba(255,50,50,0.2)'; });
+            
             document.getElementById('btn-jump').addEventListener('touchstart', (e)=>{ e.preventDefault(); input.jump=true; });
         }
     </script>
