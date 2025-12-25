@@ -3,410 +3,531 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GOODGAME - Магазин игр</title>
+    <title>GOODGAME 2.0</title>
     <style>
-        /* --- СТИЛИ (CSS) --- */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #171a21; /* Цвет фона Steam */
-            color: #c7d5e0;
-            margin: 0;
-            padding: 0;
+        :root {
+            /* Переменные для смены тем */
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --secondary-text: #666;
+            --header-bg: #ffffff;
+            --border-color: #ddd;
+            --accent-color: #2196f3;
+            --btn-text: #fff;
+            --orange-btn: #ff9800;
         }
 
-        /* Шапка */
+        /* ТЕМНАЯ ТЕМА (активируется классом .dark-mode) */
+        body.dark-mode {
+            --bg-color: #1b2838;
+            --card-bg: #171a21;
+            --text-color: #c7d5e0;
+            --secondary-text: #8f98a0;
+            --header-bg: #171a21;
+            --border-color: #2a475e;
+            --accent-color: #66c0f4;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Навигация */
         header {
-            background-color: #171a21;
-            padding: 20px;
+            background-color: var(--header-bg);
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #2a475e;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .logo {
-            font-size: 28px;
-            font-weight: bold;
-            color: #66c0f4; /* Голубой цвет Steam */
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .nav-buttons button {
-            background-color: #5c7e10;
-            color: white;
-            border: none;
-            padding: 10px 20px;
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent-color);
             cursor: pointer;
-            font-size: 14px;
-            border-radius: 2px;
-            margin-left: 10px;
-        }
-        
-        .nav-buttons button.secondary {
-            background-color: #2a475e;
         }
 
-        .nav-buttons button:hover {
-            filter: brightness(1.2);
-        }
-
-        /* Контейнер */
-        .container {
-            max-width: 940px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-
-        /* Админ панель */
-        #adminPanel {
-            background-color: #1b2838;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #66c0f4;
-            display: none; /* Скрыто по умолчанию */
-        }
-
-        h2 { color: #ffffff; border-bottom: 1px solid #2a475e; padding-bottom: 10px; }
-
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0 15px 0;
-            background-color: #2a3f5a;
-            border: 1px solid #000;
-            color: white;
-            box-sizing: border-box;
-        }
-
-        /* Сетка игр */
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-        }
-
-        .game-card {
-            background-color: #16202d;
-            border: 1px solid #2a475e;
-            transition: transform 0.2s;
-        }
-
-        .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-
-        .game-img {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-            background-color: #000;
-        }
-
-        .game-info {
-            padding: 15px;
-        }
-
-        .game-title {
-            font-size: 18px;
-            color: #ffffff;
-            margin: 0 0 10px 0;
-        }
-
-        .game-desc {
-            font-size: 13px;
-            color: #8f98a0;
-            margin-bottom: 15px;
-            height: 60px;
-            overflow: hidden;
-        }
-
-        .play-btn {
-            display: block;
-            width: 100%;
-            text-align: center;
-            background: linear-gradient( to bottom, #47bfff 5%, #1a44c2 60%);
-            color: white;
-            text-decoration: none;
-            padding: 10px 0;
-            border-radius: 2px;
-        }
-
-        .play-btn:hover {
-            background: linear-gradient( to bottom, #66c0f4 5%, #2354e6 60%);
-        }
-
-        /* Секция отзывов и деталей */
-        .interactions {
-            margin-top: 10px;
-            border-top: 1px solid #333;
-            padding-top: 10px;
-        }
-
-        .like-btn {
+        .nav-menu button {
             background: none;
             border: none;
-            color: #66c0f4;
-            cursor: pointer;
-        }
-
-        .reviews-section {
-            margin-top: 10px;
-            background: #00000030;
-            padding: 10px;
-            font-size: 12px;
-        }
-
-        .review {
-            border-bottom: 1px solid #333;
-            padding: 5px 0;
-        }
-        
-        .admin-reply {
+            color: var(--text-color);
+            font-size: 16px;
             margin-left: 20px;
-            color: #66c0f4;
-            border-left: 2px solid #66c0f4;
-            padding-left: 10px;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .nav-menu button:hover { background-color: rgba(0,0,0,0.05); }
+        .nav-menu button.active { color: var(--accent-color); font-weight: bold; }
+        
+        /* Значок уведомлений */
+        .badge {
+            background-color: red;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 50%;
+            font-size: 10px;
+            vertical-align: top;
+            display: none;
+        }
+
+        /* Контент */
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* Карточки игр */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card img { width: 100%; height: 160px; object-fit: cover; background: #ccc; }
+        .card-body { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; }
+        .card-title { font-size: 18px; font-weight: bold; margin: 0 0 10px 0; }
+        .card-desc { font-size: 13px; color: var(--secondary-text); margin-bottom: 15px; flex-grow: 1; }
+        
+        /* Теги и кнопки */
+        .tag { display: inline-block; padding: 2px 8px; font-size: 11px; border-radius: 4px; margin-bottom: 10px; }
+        .tag.beta { background: #ff9800; color: #fff; }
+        .tag.release { background: #4caf50; color: #fff; }
+
+        .btn {
+            border: none; padding: 10px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; text-align: center; text-decoration: none;
             margin-top: 5px;
         }
-
-        /* Модальное окно входа */
-        #loginModal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
+        .btn-primary { background-color: var(--accent-color); color: var(--btn-text); }
+        .btn-orange { background-color: var(--orange-btn); color: var(--btn-text); }
+        .btn-outline { border: 1px solid var(--border-color); background: transparent; color: var(--text-color); }
         
-        .modal-content {
-            background: #1b2838;
-            padding: 40px;
-            width: 300px;
-            border: 1px solid #2a475e;
-            text-align: center;
+        /* Создание игры */
+        .dev-panel { background: var(--card-bg); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
+        input, textarea, select {
+            width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid var(--border-color);
+            background: var(--bg-color); color: var(--text-color); box-sizing: border-box; border-radius: 4px;
         }
 
-        .hidden { display: none !important; }
+        /* Сообщения */
+        .msg-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 4px solid var(--accent-color); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        
+        /* Вход */
+        #authOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 1000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .auth-box { background: var(--card-bg); padding: 40px; width: 320px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+
     </style>
 </head>
 <body>
 
-<div id="loginModal">
-    <div class="modal-content">
-        <h2 style="margin-top:0">Вход в GOODGAME</h2>
-        <input type="text" id="usernameInput" placeholder="Никнейм">
-        <input type="password" id="passwordInput" placeholder="Пароль">
-        <button class="play-btn" onclick="login()">Войти / Регистрация</button>
-        <p style="font-size: 12px; color: #888;">Если аккаунта нет, он будет создан.</p>
+<div id="authOverlay">
+    <div class="auth-box">
+        <h1 class="logo">GOODGAME 2.0</h1>
+        <p>Добро пожаловать</p>
+        <input type="text" id="loginUser" placeholder="Никнейм">
+        <input type="password" id="loginPass" placeholder="Пароль">
+        <button class="btn btn-primary" onclick="handleLogin()">Войти / Регистрация</button>
     </div>
 </div>
 
-<header>
-    <div class="logo">GOODGAME</div>
-    <div class="nav-buttons">
-        <span id="userDisplay" style="margin-right: 15px; color: #66c0f4;">Гость</span>
-        <button class="secondary" onclick="openSupport()">Поддержка</button>
-        <button onclick="logout()">Выйти</button>
+<header id="mainHeader" style="display:none;">
+    <div class="logo" onclick="switchTab('store')">GOODGAME</div>
+    <div class="nav-menu">
+        <button onclick="switchTab('store')" id="btn-store">Магазин</button>
+        <button onclick="switchTab('library')" id="btn-library">Моя Библиотека</button>
+        <button onclick="switchTab('messages')" id="btn-messages">
+            Сообщения <span id="msgBadge" class="badge">0</span>
+        </button>
+        <button onclick="switchTab('create')" id="btn-create" style="display:none; color: #ff9800;">🛠 Разработка</button>
+        <button onclick="switchTab('settings')" id="btn-settings">⚙️ Настройки</button>
+        <button onclick="logout()">Выйти (<span id="userDisplay"></span>)</button>
     </div>
 </header>
 
 <div class="container">
-    <div id="adminPanel">
-        <h2>🛠 Панель Разработчика (Admin)</h2>
-        <p>Добавить новую игру в магазин:</p>
-        <input type="text" id="newGameTitle" placeholder="Название игры">
-        <input type="text" id="newGameImg" placeholder="Ссылка на картинку (URL)">
-        <input type="text" id="newGameLink" placeholder="Ссылка на игру (HTML файл или сайт)">
-        <textarea id="newGameDesc" rows="3" placeholder="Описание игры..."></textarea>
-        <button class="nav-buttons button" style="background-color: #5c7e10; color: white; padding: 10px; border:none; cursor:pointer;" onclick="publishGame()">ОПУБЛИКОВАТЬ ИГРУ</button>
+    
+    <div id="store" class="section active">
+        <h2>Магазин игр</h2>
+        <div class="grid" id="storeGrid">
+            </div>
+        <div id="emptyStoreMsg" style="text-align:center; padding: 40px; color: grey;">
+            Магазин пока пуст. Разработчики еще не выпустили игры.
+        </div>
     </div>
 
-    <h2>Популярные новинки</h2>
-    <div class="games-grid" id="gamesContainer">
+    <div id="library" class="section">
+        <h2>Мои игры</h2>
+        <p>Здесь находятся ваши купленные игры и одобренные беты.</p>
+        <div class="grid" id="libraryGrid"></div>
+    </div>
+
+    <div id="messages" class="section">
+        <h2>Уведомления и Ключи</h2>
+        <div id="messagesList"></div>
+    </div>
+
+    <div id="create" class="section">
+        <h2>Панель Разработчика</h2>
+        <div class="dev-panel">
+            <h3>Создать новый проект</h3>
+            <input type="text" id="devTitle" placeholder="Название игры">
+            <input type="text" id="devImg" placeholder="Ссылка на картинку">
+            <input type="text" id="devLink" placeholder="Ссылка на файл игры (или сайт)">
+            <textarea id="devDesc" rows="3" placeholder="Описание игры..."></textarea>
+            
+            <label>Тип релиза:</label>
+            <select id="devType">
+                <option value="release">Полноценный релиз (Доступно всем)</option>
+                <option value="beta">Закрытый Бета-тест (По заявкам)</option>
+            </select>
+            
+            <button class="btn btn-orange" onclick="publishGame()">ОПУБЛИКОВАТЬ ПРОЕКТ</button>
         </div>
+
+        <h3>Заявки на бета-тест (Входящие)</h3>
+        <div id="betaRequestsList">
+            </div>
+    </div>
+
+    <div id="settings" class="section">
+        <h2>Настройки</h2>
+        <div class="dev-panel">
+            <label style="display:flex; align-items:center; cursor:pointer;">
+                <input type="checkbox" id="themeToggle" style="width:auto; margin-right:10px;" onchange="toggleTheme()">
+                Включить Тёмную тему (Night Mode)
+            </label>
+        </div>
+    </div>
+
 </div>
 
 <script>
-    // --- ДАННЫЕ И ПЕРЕМЕННЫЕ ---
-    let currentUser = null;
-    let isAdmin = false;
+    // --- БАЗА ДАННЫХ (LOCALSTORAGE) ---
+    // В реальной жизни это было бы на сервере (MySQL/MongoDB)
     
-    // Загрузка игр из памяти (или создание стандартных, если пусто)
-    let games = JSON.parse(localStorage.getItem('goodgame_games')) || [
-        {
-            id: 1,
-            title: "Demo Shooter",
-            desc: "Классический шутер. Уничтожь всех врагов!",
-            img: "https://via.placeholder.com/300x160/000000/ffffff?text=Shooter",
-            link: "#",
-            likes: 124,
-            reviews: [
-                {user: "Player1", text: "Топ игра!", reply: ""}
-            ]
+    let db = {
+        users: [], // {name, pass, library:[], messages:[]}
+        games: [], // {id, title, img, desc, link, type, requests:[]}
+        currentUser: null
+    };
+
+    // Админский пароль
+    const ADMIN_PASS = "FHSWJDJWJDH@*&$*!@*(#@*dndnanmnasnd";
+
+    // --- ИНИЦИАЛИЗАЦИЯ ---
+    function init() {
+        // Загрузка данных
+        const storedUsers = localStorage.getItem('gg2_users');
+        const storedGames = localStorage.getItem('gg2_games');
+        const activeUser = localStorage.getItem('gg2_current');
+
+        if (storedUsers) db.users = JSON.parse(storedUsers);
+        if (storedGames) db.games = JSON.parse(storedGames);
+        
+        // Авто-вход
+        if (activeUser) {
+            db.currentUser = db.users.find(u => u.name === activeUser);
+            if (db.currentUser) {
+                showApp();
+            }
         }
-    ];
-
-    // --- ФУНКЦИИ ---
-
-    function saveGames() {
-        localStorage.setItem('goodgame_games', JSON.stringify(games));
-        renderGames();
     }
 
-    // Логика входа
-    function login() {
-        const userIn = document.getElementById('usernameInput').value;
-        const passIn = document.getElementById('passwordInput').value;
-        
-        if (!userIn) return alert("Введите ник!");
+    // --- АВТОРИЗАЦИЯ ---
+    function handleLogin() {
+        const name = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
 
-        // ПРОВЕРКА НА АДМИНА
-        const adminPass = "FHSWJDJWJDH@*&$*!@*(#@*dndnanmnasnd";
-        
-        if (userIn === "Admin" && passIn === adminPass) {
-            isAdmin = true;
-            alert("Добро пожаловать, Создатель! Включен режим разработчика.");
-            document.getElementById('adminPanel').style.display = 'block';
+        if (!name) return alert("Введите имя!");
+
+        let user = db.users.find(u => u.name === name);
+
+        if (!user) {
+            // Регистрация
+            user = { name: name, pass: pass, library: [], messages: [] };
+            db.users.push(user);
+            saveData();
+            alert("Аккаунт создан! Входим...");
         } else {
-            isAdmin = false;
-            document.getElementById('adminPanel').style.display = 'none';
+            // Проверка пароля
+            if (user.pass !== pass) return alert("Неверный пароль!");
         }
 
-        currentUser = userIn;
-        document.getElementById('userDisplay').innerText = currentUser;
-        document.getElementById('loginModal').classList.add('hidden');
-        renderGames();
+        db.currentUser = user;
+        localStorage.setItem('gg2_current', name);
+        showApp();
     }
 
     function logout() {
+        db.currentUser = null;
+        localStorage.removeItem('gg2_current');
         location.reload();
     }
 
-    function openSupport() {
-        let msg = prompt("Опишите вашу проблему для службы поддержки:");
-        if (msg) {
-            alert("Ваше сообщение отправлено! Номер тикета: #" + Math.floor(Math.random() * 10000));
+    function showApp() {
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainHeader').style.display = 'flex';
+        document.getElementById('userDisplay').innerText = db.currentUser.name;
+
+        // Если админ - показать кнопку разработчика
+        if (db.currentUser.pass === ADMIN_PASS) {
+            document.getElementById('btn-create').style.display = 'block';
+            renderBetaRequests(); // Загрузить заявки
+        }
+
+        updateUI();
+    }
+
+    // --- ЛОГИКА ИНТЕРФЕЙСА ---
+    function switchTab(tabId) {
+        document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        // Подсветка кнопок
+        document.querySelectorAll('.nav-menu button').forEach(b => b.classList.remove('active'));
+        const btn = document.getElementById('btn-' + tabId);
+        if(btn) btn.classList.add('active');
+
+        if(tabId === 'store') renderStore();
+        if(tabId === 'library') renderLibrary();
+        if(tabId === 'messages') renderMessages();
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    // --- ЛОГИКА ДАННЫХ ---
+    function saveData() {
+        localStorage.setItem('gg2_users', JSON.stringify(db.users));
+        localStorage.setItem('gg2_games', JSON.stringify(db.games));
+        // Обновляем текущего юзера в памяти, чтобы данные не терялись при обновлении страницы
+        if(db.currentUser) {
+            // Находим актуальную версию юзера в массиве
+            const freshUser = db.users.find(u => u.name === db.currentUser.name);
+            db.currentUser = freshUser; 
         }
     }
 
-    // Публикация игры (Только Админ)
+    // --- РАЗРАБОТКА (АДМИН) ---
     function publishGame() {
-        const title = document.getElementById('newGameTitle').value;
-        const img = document.getElementById('newGameImg').value;
-        const link = document.getElementById('newGameLink').value;
-        const desc = document.getElementById('newGameDesc').value;
-
-        if (!title || !link) return alert("Нужно хотя бы название и ссылка!");
+        const title = document.getElementById('devTitle').value;
+        const type = document.getElementById('devType').value;
+        const link = document.getElementById('devLink').value;
+        
+        if(!title || !link) return alert("Заполните поля!");
 
         const newGame = {
             id: Date.now(),
             title: title,
-            img: img || "https://via.placeholder.com/300x160/000000/ffffff?text=No+Image", // Заглушка, если нет картинки
+            img: document.getElementById('devImg').value || "https://via.placeholder.com/300x160?text=No+Image",
+            desc: document.getElementById('devDesc').value,
             link: link,
-            desc: desc,
-            likes: 0,
-            reviews: []
+            type: type, // 'release' or 'beta'
+            requests: [] // Кто подал заявку на бету
         };
 
-        games.unshift(newGame); // Добавить в начало
-        saveGames();
+        db.games.unshift(newGame);
+        saveData();
+        alert("Проект опубликован!");
         
-        // Очистка полей
-        document.getElementById('newGameTitle').value = "";
-        document.getElementById('newGameImg').value = "";
-        document.getElementById('newGameLink').value = "";
-        document.getElementById('newGameDesc').value = "";
-        
-        alert("Игра успешно опубликована в магазине!");
+        // Очистка
+        document.getElementById('devTitle').value = "";
     }
 
-    // Лайкнуть игру
-    function likeGame(id) {
-        const game = games.find(g => g.id === id);
-        if (game) {
-            game.likes++;
-            saveGames();
-        }
-    }
-
-    // Написать отзыв
-    function addReview(id) {
-        const text = prompt("Напишите ваш отзыв:");
-        if (text) {
-            const game = games.find(g => g.id === id);
-            game.reviews.push({
-                user: currentUser,
-                text: text,
-                reply: ""
-            });
-            saveGames();
-        }
-    }
-
-    // Ответить на отзыв (Только Админ)
-    function replyToReview(gameId, reviewIndex) {
-        if (!isAdmin) return;
-        const text = prompt("Ответ разработчика:");
-        if (text) {
-            games.find(g => g.id === gameId).reviews[reviewIndex].reply = text;
-            saveGames();
-        }
-    }
-
-    // ОТРИСОВКА ИГР
-    function renderGames() {
-        const container = document.getElementById('gamesContainer');
+    // --- МАГАЗИН И БИБЛИОТЕКА ---
+    function renderStore() {
+        const container = document.getElementById('storeGrid');
         container.innerHTML = "";
+        
+        if(db.games.length > 0) document.getElementById('emptyStoreMsg').style.display = 'none';
 
-        games.forEach(game => {
-            // Генерация HTML для отзывов
-            let reviewsHtml = "";
-            game.reviews.forEach((rev, index) => {
-                let replyButton = "";
-                if (isAdmin && !rev.reply) {
-                    replyButton = `<button style="font-size:10px; margin-left:5px;" onclick="replyToReview(${game.id}, ${index})">Ответить</button>`;
+        db.games.forEach(game => {
+            const hasGame = db.currentUser.library.includes(game.id);
+            let actionBtn = "";
+
+            if (hasGame) {
+                actionBtn = `<button class="btn btn-outline" disabled>В БИБЛИОТЕКЕ</button>`;
+            } else if (game.type === 'release') {
+                actionBtn = `<button class="btn btn-primary" onclick="addToLibrary(${game.id})">ДОБАВИТЬ БЕСПЛАТНО</button>`;
+            } else {
+                // Это БЕТА
+                const alreadyRequested = game.requests && game.requests.includes(db.currentUser.name);
+                if (alreadyRequested) {
+                     actionBtn = `<button class="btn btn-outline" disabled>ЗАЯВКА ОТПРАВЛЕНА</button>`;
+                } else {
+                     actionBtn = `<button class="btn btn-orange" onclick="requestBeta(${game.id})">ПОДАТЬ ЗАЯВКУ НА БЕТУ</button>`;
                 }
-                
-                let adminReplyHtml = rev.reply ? `<div class="admin-reply">👨‍💻 Dev: ${rev.reply}</div>` : "";
+            }
 
-                reviewsHtml += `
-                    <div class="review">
-                        <strong>${rev.user}:</strong> ${rev.text} ${replyButton}
-                        ${adminReplyHtml}
-                    </div>
-                `;
-            });
+            const badge = game.type === 'beta' ? '<span class="tag beta">BETA TEST</span>' : '<span class="tag release">RELEASE</span>';
 
-            const card = document.createElement('div');
-            card.className = 'game-card';
-            card.innerHTML = `
-                <img src="${game.img}" class="game-img" alt="${game.title}">
-                <div class="game-info">
-                    <h3 class="game-title">${game.title}</h3>
-                    <p class="game-desc">${game.desc}</p>
-                    <a href="${game.link}" class="play-btn" target="_blank">ИГРАТЬ</a>
-                    
-                    <div class="interactions">
-                        <button class="like-btn" onclick="likeGame(${game.id})">👍 ${game.likes}</button>
-                        <button class="like-btn" style="float:right" onclick="addReview(${game.id})">💬 Отзыв</button>
-                    </div>
-                    
-                    <div class="reviews-section">
-                        ${reviewsHtml || "<i>Пока нет отзывов</i>"}
+            container.innerHTML += `
+                <div class="card">
+                    <img src="${game.img}">
+                    <div class="card-body">
+                        ${badge}
+                        <div class="card-title">${game.title}</div>
+                        <div class="card-desc">${game.desc}</div>
+                        ${actionBtn}
+                        <button class="btn btn-outline" style="font-size:12px; margin-top:5px;" onclick="addReview(${game.id})">Написать отзыв</button>
                     </div>
                 </div>
             `;
-            container.appendChild(card);
         });
     }
 
-    // Первый запуск
-    renderGames();
+    function renderLibrary() {
+        const container = document.getElementById('libraryGrid');
+        container.innerHTML = "";
+        
+        const myGames = db.games.filter(g => db.currentUser.library.includes(g.id));
+        
+        if(myGames.length === 0) container.innerHTML = "<p>У вас пока нет игр.</p>";
+
+        myGames.forEach(game => {
+            container.innerHTML += `
+                <div class="card">
+                    <img src="${game.img}">
+                    <div class="card-body">
+                        <div class="card-title">${game.title}</div>
+                        <a href="${game.link}" target="_blank" class="btn btn-primary">ЗАПУСТИТЬ</a>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // --- ЛОГИКА БЕТА ТЕСТОВ ---
+    function addToLibrary(gameId) {
+        // Ищем актуального юзера в общем списке, чтобы изменить ЕГО данные
+        const userIndex = db.users.findIndex(u => u.name === db.currentUser.name);
+        db.users[userIndex].library.push(gameId);
+        saveData();
+        renderStore();
+    }
+
+    function requestBeta(gameId) {
+        const game = db.games.find(g => g.id === gameId);
+        if(!game.requests) game.requests = [];
+        
+        game.requests.push(db.currentUser.name);
+        saveData();
+        renderStore();
+        alert("Заявка отправлена разработчику!");
+    }
+
+    function renderBetaRequests() {
+        const container = document.getElementById('betaRequestsList');
+        container.innerHTML = "";
+        
+        let found = false;
+        db.games.forEach(game => {
+            if(game.type === 'beta' && game.requests && game.requests.length > 0) {
+                found = true;
+                game.requests.forEach(userName => {
+                    container.innerHTML += `
+                        <div class="msg-item" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Игрок <b>${userName}</b> хочет доступ к <b>${game.title}</b></span>
+                            <button class="btn btn-primary" style="width:auto;" onclick="approveBeta(${game.id}, '${userName}')">ПРИНЯТЬ</button>
+                        </div>
+                    `;
+                });
+            }
+        });
+
+        if(!found) container.innerHTML = "<p>Нет новых заявок.</p>";
+    }
+
+    function approveBeta(gameId, userName) {
+        // 1. Добавляем игру юзеру в библиотеку
+        const user = db.users.find(u => u.name === userName);
+        if(user) {
+            if(!user.library.includes(gameId)) user.library.push(gameId);
+            
+            // 2. Генерируем код и сообщение
+            const game = db.games.find(g => g.id === gameId);
+            const secretCode = "KEY-" + Math.floor(Math.random() * 1000000);
+            
+            user.messages.push({
+                title: "Доступ к бете: " + game.title,
+                text: `Поздравляем! Ваша заявка одобрена. <br> Ваш секретный код тестировщика: <b>${secretCode}</b> <br> Ссылка: ${game.link}`,
+                date: new Date().toLocaleString()
+            });
+
+            // 3. Удаляем из заявок
+            game.requests = game.requests.filter(r => r !== userName);
+            
+            saveData();
+            renderBetaRequests();
+            alert(`Доступ выдан игроку ${userName}! Сообщение отправлено.`);
+        }
+    }
+
+    // --- СООБЩЕНИЯ ---
+    function renderMessages() {
+        const container = document.getElementById('messagesList');
+        container.innerHTML = "";
+        
+        // Обновляем текущего юзера
+        const user = db.users.find(u => u.name === db.currentUser.name);
+        
+        if(!user.messages || user.messages.length === 0) {
+            container.innerHTML = "<p>Входящих сообщений нет.</p>";
+            return;
+        }
+
+        user.messages.forEach(msg => {
+            container.innerHTML += `
+                <div class="msg-item">
+                    <h4>${msg.title} <span style="font-size:10px; color:grey; float:right">${msg.date}</span></h4>
+                    <p>${msg.text}</p>
+                </div>
+            `;
+        });
+        
+        // Сброс бейджика
+        document.getElementById('msgBadge').style.display = 'none';
+    }
+
+    function updateUI() {
+        // Проверка новых сообщений для бейджика
+        const user = db.users.find(u => u.name === db.currentUser.name);
+        if(user && user.messages && user.messages.length > 0) {
+            const badge = document.getElementById('msgBadge');
+            badge.innerText = user.messages.length;
+            badge.style.display = 'inline-block';
+        }
+    }
+
+    function addReview(gameId) {
+        const text = prompt("Ваш отзыв об игре:");
+        if(text) alert("Отзыв отправлен! (Появится после модерации)");
+    }
+
+    // Запуск
+    init();
 
 </script>
 
