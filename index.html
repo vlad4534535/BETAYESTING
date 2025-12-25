@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PolyStrike: EVOLUTION 2.0</title>
+    <title>PolyStrike: EVOLUTION 2.1</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Rajdhani:wght@500;700&display=swap');
         
@@ -116,7 +116,7 @@
                 <button class="btn" onclick="joinGame()">ПОДКЛЮЧИТЬСЯ</button>
             </div>
             
-            <div id="status-log" style="color:#0ff; height:30px; font-size:14px; font-weight:bold;"></div>
+            <div id="status-log" style="color:#0ff; margin-top:10px; height:40px; display:flex; justify-content:center; align-items:center;"></div>
             <button class="btn btn-sec" onclick="toMenu()">ОТМЕНА</button>
         </div>
     </div>
@@ -198,7 +198,6 @@
             for(let k in data) {
                 const item = data[k];
                 const el = document.createElement('div');
-                const isOwned = true; // Для простоты всё доступно, но можно добавить проверку покупок
                 const isSelected = (current === k);
                 
                 el.className = `item-card ${isSelected ? 'selected' : ''}`;
@@ -215,7 +214,7 @@
                 el.onclick = () => {
                     if(type === 'skins') { CFG.skin = k; localStorage.setItem('ps_skin', k); }
                     else { CFG.gun = k; localStorage.setItem('ps_gun', k); }
-                    openShop(type); // Обновить
+                    openShop(type); 
                 };
                 con.appendChild(el);
             }
@@ -235,7 +234,6 @@
         /* === 3D МИР (THREE.JS) === */
         let scene, camera, renderer, clock;
         let myMesh, enemyMesh;
-        let projectiles = [];
         let peer, conn;
         let input = { x:0, y:0, jump:0, shoot:0 };
         let myHP = 100;
@@ -256,7 +254,7 @@
             document.body.appendChild(renderer.domElement);
             clock = new THREE.Clock();
 
-            // НЕБО (Звезды)
+            // НЕБО
             const starGeo = new THREE.BufferGeometry();
             const starCount = 2000;
             const posArray = new Float32Array(starCount * 3);
@@ -266,17 +264,17 @@
             scene.add(stars);
 
             // СВЕТ
-            const ambient = new THREE.AmbientLight(0x404040, 0.6); // Мягкий свет
+            const ambient = new THREE.AmbientLight(0x404040, 0.6); 
             scene.add(ambient);
             const sun = new THREE.DirectionalLight(0x00ccff, 0.7);
             sun.position.set(20, 50, 20); sun.castShadow = true;
             sun.shadow.mapSize.width = 2048; sun.shadow.mapSize.height = 2048;
             scene.add(sun);
-            const pointL = new THREE.PointLight(0xffaa00, 0.5, 20); // Теплый свет от центра
+            const pointL = new THREE.PointLight(0xffaa00, 0.5, 20);
             pointL.position.set(0,5,0);
             scene.add(pointL);
 
-            // ПОЛ (Неоновая сетка)
+            // ПОЛ
             const gridHelper = new THREE.GridHelper(200, 100, 0x00e5ff, 0x111133);
             scene.add(gridHelper);
             const floorPlane = new THREE.Mesh(
@@ -298,9 +296,9 @@
             }
 
             // ВРАГ
-            enemyMesh = createCharacter(SKINS['classic'].color, 'pistol'); // Временно дефолт
+            enemyMesh = createCharacter(SKINS['classic'].color, 'pistol'); 
             scene.add(enemyMesh);
-            enemyMesh.position.y = -500; // Спрятать
+            enemyMesh.position.y = -500; 
 
             camera.position.set(0, 1.7, 5);
 
@@ -323,7 +321,7 @@
             const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshPhongMaterial({color: 0xffccaa}));
             head.position.y = 1.45; head.castShadow = true;
             
-            // Глаза (визуал)
+            // Глаза
             const eyes = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.1), new THREE.MeshBasicMaterial({color:0x000000}));
             eyes.position.set(0, 0.05, 0.25); head.add(eyes);
             group.add(head);
@@ -335,19 +333,43 @@
             const gun = new THREE.Mesh(gunGeo, gunMat);
             gun.position.set(0.3, 0.8, 0.4); 
             group.add(gun);
-            group.gunMesh = gun; // Ссылка для эффектов
+            group.gunMesh = gun; 
 
             return group;
         }
 
-        /* === СЕТЬ (P2P + LOGIC) === */
+        /* === СЕТЬ (P2P + COPY LOGIC) === */
         function hostGame() {
             peer = new Peer();
             peer.on('open', id => {
-                document.getElementById('status-log').innerHTML = `КОД КОМНАТЫ: <span style="color:#fff; background:#333; padding:5px;">${id}</span>`;
+                // ГЕНЕРАЦИЯ КНОПКИ С КОДОМ
+                const log = document.getElementById('status-log');
+                log.innerHTML = `
+                    <span style="color:#aaa; margin-right:10px;">Твой код:</span>
+                    <button id="copy-btn" class="btn" style="width:auto; padding:5px 15px; font-size:16px; background:#00e5ff; color:#000;" 
+                    onclick="copyRoomCode('${id}')">
+                        ${id} 📋
+                    </button>
+                `;
             });
             peer.on('connection', c => { conn = c; setupConnection(); });
         }
+
+        // ФУНКЦИЯ КОПИРОВАНИЯ
+        function copyRoomCode(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copy-btn');
+                const oldText = btn.innerHTML;
+                btn.style.background = '#00ff00';
+                btn.innerText = "СКОПИРОВАНО! ✅";
+                
+                setTimeout(() => {
+                    btn.style.background = '#00e5ff';
+                    btn.innerHTML = oldText;
+                }, 1500);
+            });
+        }
+
         function joinGame() {
             const id = document.getElementById('join-code').value;
             if(!id) return alert('Введите ID!');
@@ -363,22 +385,18 @@
             }, 1000);
 
             conn.on('data', d => {
-                // Инициализация врага
                 if(d.type === 'init') {
-                    scene.remove(enemyMesh); // Удаляем старый
+                    scene.remove(enemyMesh);
                     enemyMesh = createCharacter(SKINS[d.skin].color, d.gun);
                     scene.add(enemyMesh);
                 }
-                // Движение врага
                 if(d.type === 'move') {
                     enemyMesh.position.set(d.x, d.y, d.z);
                     enemyMesh.rotation.y = d.ry;
                 }
-                // Враг стреляет (визуал)
                 if(d.type === 'shoot') {
                     createBulletTrace(enemyMesh.position, new THREE.Vector3(d.dx, d.dy, d.dz));
                 }
-                // В меня попали
                 if(d.type === 'hit') {
                     takeDamage(d.dmg);
                 }
@@ -393,62 +411,51 @@
             myHP -= amount;
             document.getElementById('hp-val').style.width = myHP + '%';
             
-            // Эффект крови
             const overlay = document.getElementById('damage-overlay');
             overlay.style.opacity = 1;
             setTimeout(() => overlay.style.opacity = 0, 300);
 
             if(myHP <= 0) {
-                myHP = 100; // Респаун
+                myHP = 100; 
                 camera.position.set(Math.random()*40-20, 2, Math.random()*40-20);
-                // Можно добавить счетчик смертей здесь
             }
         }
 
         function shoot() {
             const now = Date.now();
             const weapon = WEAPONS[CFG.gun];
-            if(now - lastShot < weapon.rate) return; // Скорострельность
+            if(now - lastShot < weapon.rate) return; 
             lastShot = now;
 
-            // 1. Визуал трассера
             const origin = camera.position.clone();
-            origin.y -= 0.2; // Чуть ниже глаз
+            origin.y -= 0.2; 
             const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
             createBulletTrace(origin, dir);
 
-            // 2. Логика попадания (Raycast)
             const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(new THREE.Vector2(0,0), camera); // Центр экрана
+            raycaster.setFromCamera(new THREE.Vector2(0,0), camera); 
             
-            const intersects = raycaster.intersectObject(enemyMesh, true); // Проверка попадания во врага
+            const intersects = raycaster.intersectObject(enemyMesh, true); 
             
             if(intersects.length > 0) {
-                // ПОПАЛ!
-                console.log("HIT!");
                 if(conn && conn.open) {
                     conn.send({ type: 'hit', dmg: weapon.dmg });
-                    // Визуал партиклов попадания можно добавить тут
                 }
             }
 
-            // 3. Отправка выстрела врагу (чтобы он видел трассер)
             if(conn && conn.open) {
                 conn.send({ type: 'shoot', dx: dir.x, dy: dir.y, dz: dir.z });
             }
         }
 
         function createBulletTrace(startPos, dir) {
-            // Линия выстрела
             const material = new THREE.LineBasicMaterial({ color: 0xffff00 });
             const points = [];
-            points.push(startPos.clone().add(new THREE.Vector3(0.2, -0.2, 0))); // От пушки
-            points.push(startPos.clone().add(dir.multiplyScalar(50))); // Вдаль
+            points.push(startPos.clone().add(new THREE.Vector3(0.2, -0.2, 0))); 
+            points.push(startPos.clone().add(dir.multiplyScalar(50))); 
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const line = new THREE.Line(geometry, material);
             scene.add(line);
-            
-            // Исчезновение линии
             setTimeout(() => scene.remove(line), 50);
         }
 
@@ -456,7 +463,6 @@
             requestAnimationFrame(animate);
             const dt = clock.getDelta();
 
-            // ФИЗИКА ИГРОКА
             const dir = new THREE.Vector3();
             const fwd = new THREE.Vector3(0,0,-1).applyEuler(new THREE.Euler(0, camera.rotation.y, 0));
             const side = new THREE.Vector3(1,0,0).applyEuler(new THREE.Euler(0, camera.rotation.y, 0));
@@ -466,21 +472,18 @@
 
             camera.position.add(dir.normalize().multiplyScalar(speed * dt));
 
-            // Прыжок
             if(input.jump && camera.position.y <= 1.75) { velY = 12; input.jump=false; }
-            velY -= 30 * dt; // Гравитация
+            velY -= 30 * dt; 
             camera.position.y += velY * dt;
             if(camera.position.y < 1.7) { camera.position.y = 1.7; velY = 0; }
 
-            // Стрельба (для мобайла или авто)
             if(input.shoot) shoot();
 
-            // Отправка позиции в сеть
             if(conn && conn.open) {
                 conn.send({
                     type: 'move',
                     x: camera.position.x, 
-                    y: camera.position.y - 1.6, // Коррекция модели
+                    y: camera.position.y - 1.6, 
                     z: camera.position.z,
                     ry: camera.rotation.y + Math.PI 
                 });
@@ -530,7 +533,6 @@
             });
             stick.addEventListener('touchend', () => { knob.style.transform=''; input.x=0; input.y=0; });
 
-            // Вращение камеры
             let lastX;
             document.addEventListener('touchstart', e => { if(e.touches[0].clientX > window.innerWidth/2) lastX = e.touches[0].clientX; });
             document.addEventListener('touchmove', e => {
